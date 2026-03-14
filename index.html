@@ -713,14 +713,15 @@ document.addEventListener('click', function(e) {
         + '<div class="info-row"><span class="lbl">رقم التذكرة المتاح</span><span class="val tnum">' + nextNum + '</span></div>';
 
       document.getElementById('mSendConfirm').onclick = function() {
+        // نفتح الواتساب أولاً مباشرة في الـ click event عشان المتصفح ميبلوكوش
+        waOpen(ticket.phone,
+          '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
+          '👤 الاسم: '       + ticket.name + '\n' +
+          '🎟️ رقم تذكرتك: ' + nextNum     + '\n━━━━━━━━━━━━━━\n' +
+          '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
+        );
         updateTicket(id, { status:'waiting', ticketNumber: nextNum, time: nowStr() }, function(err) {
           if (err) { toast('❌ خطأ في التحديث'); return; }
-          waOpen(ticket.phone,
-            '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
-            '👤 الاسم: '       + ticket.name + '\n' +
-            '🎟️ رقم تذكرتك: ' + nextNum     + '\n━━━━━━━━━━━━━━\n' +
-            '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
-          );
           closeModal('mSend');
           loadDashboard();
           toast('✅ تم إرسال التذكرة رقم ' + nextNum);
