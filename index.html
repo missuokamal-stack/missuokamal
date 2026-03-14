@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <!-- Supabase CDN — لرفع الإيصالات -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -517,7 +517,7 @@ var _supabase = supabase.createClient(
   'https://xlieswavjjgqsnczesct.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsaWVzd2F2ampncXNuY3plc2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNDY3ODMsImV4cCI6MjA4NjkyMjc4M30.B5UvhsGQ80h86pOTFa9Yd9YOjK1DaY-8KPN1mtLBRbk'
 );
-var BUCKET = 'missuokamal';
+var BUCKET = 'missuokama';
 
 async function uploadReceipt(file, ticketId) {
   var ext  = file.name.split('.').pop();
