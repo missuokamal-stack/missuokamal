@@ -8,6 +8,8 @@
   <!-- Firebase compat CDN — يشتغل محلياً وعلى GitHub Pages بدون import/module -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <!-- Supabase CDN — لرفع الإيصالات -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -119,6 +121,23 @@
     /* Barber total */
     .barber-total{font-size:12px;opacity:.8;margin-top:3px}
 
+    /* Payment section */
+    .pay-box{background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:2px solid #a5d6a7;border-radius:14px;padding:16px;margin-bottom:16px}
+    .pay-box .pay-title{font-size:13px;color:#555;margin-bottom:8px;font-weight:700}
+    .pay-number{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:10px;padding:11px 14px;border:1px solid #c8e6c9}
+    .pay-number span{font-size:18px;font-weight:800;color:#2e7d32;letter-spacing:1px;direction:ltr}
+    .copy-btn{background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+    .copy-btn:active{transform:scale(.96)}
+    .upload-area{border:2px dashed #90caf9;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#f8fbff;margin-top:8px}
+    .upload-area:hover{border-color:#42a5f5;background:#e3f2fd}
+    .upload-area input{display:none}
+    .upload-area .up-icon{font-size:32px;margin-bottom:6px}
+    .upload-area .up-text{font-size:13px;color:#888}
+    .upload-preview{margin-top:10px;border-radius:10px;overflow:hidden;max-height:180px;display:none}
+    .upload-preview img{width:100%;object-fit:cover}
+    .receipt-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;border:2px solid #e0e0e0}
+    .receipt-thumb:hover{border-color:var(--pr)}
+
     /* Barbers */
     .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px}
     .barber-card{background:linear-gradient(135deg,var(--pr),var(--pr2));border-radius:15px;padding:18px 12px;text-align:center;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 5px 18px rgba(102,126,234,.3)}
@@ -209,6 +228,29 @@
         <form id="frmBook">
           <div class="fg"><label>الاسم الكامل</label><input type="text" id="inName" placeholder="أدخل اسمك الكامل" required/></div>
           <div class="fg"><label>رقم التليفون</label><input type="tel" id="inPhone" placeholder="01xxxxxxxxx" required/></div>
+
+          <!-- خانة الدفع -->
+          <div class="pay-box">
+            <div class="pay-title">💳 ادفع أولاً على فودافون كاش / انستاباي</div>
+            <div class="pay-number">
+              <span id="payNum">01060602836</span>
+              <button type="button" class="copy-btn" onclick="copyPayNum()">📋 نسخ</button>
+            </div>
+            <div style="font-size:12px;color:#888;margin-top:8px">بعد الدفع ارفع صورة الإيصال أدناه</div>
+          </div>
+
+          <div class="fg">
+            <label>📎 صورة إيصال الدفع <span style="color:#e53e3e">*</span></label>
+            <div class="upload-area" onclick="document.getElementById('inReceipt').click()">
+              <input type="file" id="inReceipt" accept="image/*" onchange="previewReceipt(this)"/>
+              <div class="up-icon">📷</div>
+              <div class="up-text">اضغط لرفع صورة الإيصال</div>
+            </div>
+            <div class="upload-preview" id="receiptPreview">
+              <img id="receiptImg" src="" alt="إيصال الدفع"/>
+            </div>
+          </div>
+
           <button type="submit" class="btn btn-pr btn-full">احجز الآن 🎫</button>
         </form>
       </div>
@@ -291,7 +333,7 @@
         </div>
         <div class="acc-body" id="bodyPend">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>وقت الطلب</th><th>إجراء</th><th>حذف</th></tr></thead>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>وقت الطلب</th><th>الإيصال</th><th>إجراء</th><th>حذف</th></tr></thead>
             <tbody id="tblP"></tbody>
           </table></div>
         </div>
@@ -353,6 +395,7 @@
           <form id="frmAdd">
             <div class="fg"><label>الاسم</label><input type="text" id="addName" required/></div>
             <div class="fg"><label>رقم التليفون</label><input type="tel" id="addPhone" required/></div>
+            <div class="fg"><label>ملاحظات <span style="color:#aaa;font-weight:400">(اختياري)</span></label><input type="text" id="addNote" placeholder="مثال: دفع مسبقاً، زبون VIP..."/></div>
             <button type="submit" class="btn btn-pr btn-full">إضافة وإرسال التذكرة على الواتساب</button>
           </form>
         </div>
@@ -422,6 +465,17 @@
   </div>
 </div>
 
+<div id="mReceipt" class="overlay hidden">
+  <div class="modal" style="text-align:center">
+    <div class="modal-title">🧾 إيصال الدفع</div>
+    <div id="mReceiptInfo" style="margin-bottom:14px"></div>
+    <img id="mReceiptImg" src="" alt="إيصال" style="width:100%;border-radius:12px;max-height:400px;object-fit:contain;border:1px solid #eee"/>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn btn-gy btn-full close-modal" data-modal="mReceipt">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <div id="mDev" class="overlay hidden">
   <div class="modal" style="text-align:center">
     <div style="font-size:60px;margin-bottom:10px">👨‍💻</div>
@@ -455,6 +509,24 @@
 var ADMIN_PASS = 'admin123';
 var ADMIN_WA   = '201060602836';
 var BARBERS    = ['أحمد كمال','محمد','محمود','أحمد السيد','إبراهيم','باسم'];
+
+/* ================================================================
+   SUPABASE INIT — لرفع الإيصالات فقط
+================================================================ */
+var _supabase = supabase.createClient(
+  'https://xlieswavjjgqsnczesct.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsaWVzd2F2ampncXNuY3plc2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNDY3ODMsImV4cCI6MjA4NjkyMjc4M30.B5UvhsGQ80h86pOTFa9Yd9YOjK1DaY-8KPN1mtLBRbk'
+);
+var BUCKET = 'missuokama';
+
+async function uploadReceipt(file, ticketId) {
+  var ext  = file.name.split('.').pop();
+  var path = 'receipts/' + ticketId + '.' + ext;
+  var { error } = await _supabase.storage.from(BUCKET).upload(path, file, { upsert: true });
+  if (error) throw error;
+  var { data } = _supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
 
 /* ================================================================
    FIREBASE INIT  (compat SDK — يشتغل بدون import/module)
@@ -501,6 +573,24 @@ function waOpen(phone, msg) {
   var n = (phone+'').replace(/\D/g,'');
   if (n.startsWith('0')) n = '2' + n;
   window.open('https://wa.me/' + n + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function copyPayNum() {
+  navigator.clipboard.writeText('01060602836').then(function(){
+    toast('✅ تم نسخ الرقم');
+  });
+}
+
+function previewReceipt(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('receiptImg').src = e.target.result;
+    document.getElementById('receiptPreview').style.display = 'block';
+    document.querySelector('.upload-area .up-text').textContent = '✅ ' + file.name;
+  };
+  reader.readAsDataURL(file);
 }
 
 /* حساب رقم التذكرة التالي = أعلى رقم موجود + 1 */
@@ -588,32 +678,42 @@ document.getElementById('frmBook').addEventListener('submit', function(e) {
   e.preventDefault();
   var name  = document.getElementById('inName').value.trim();
   var phone = document.getElementById('inPhone').value.trim();
+  var file  = document.getElementById('inReceipt').files[0];
   if (!name || !phone) { alert('من فضلك أدخل الاسم والتليفون'); return; }
+  if (!file) { alert('من فضلك ارفع صورة إيصال الدفع'); return; }
 
-  var ticket = {
-    id:           uid(),
-    name:         name,
-    phone:        phone,
-    status:       'pending',
-    ticketNumber: 0,
-    barberName:   '',
-    time:         nowStr(),
-    ts:           Date.now()
-  };
+  var btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الرفع...';
 
-  addTicket(ticket, function(err) {
-    if (err) { alert('حدث خطأ، تأكد من الاتصال بالإنترنت'); return; }
-    // إشعار المسؤول
-    waOpen(ADMIN_WA,
-      '🔔 طلب حجز جديد!\n━━━━━━━━━━━━━━\n' +
-      '👤 الاسم: '    + name  + '\n' +
-      '📞 التليفون: ' + phone + '\n━━━━━━━━━━━━━━\n' +
-      '⏳ في انتظار تأكيد التذكرة'
-    );
-    document.getElementById('formCard').classList.add('hidden');
-    document.getElementById('bookDone').classList.remove('hidden');
-    document.getElementById('dName').textContent  = name;
-    document.getElementById('dPhone').textContent = phone;
+  var ticketId = uid();
+  uploadReceipt(file, ticketId).then(function(receiptUrl) {
+    var ticket = {
+      id: ticketId, name: name, phone: phone,
+      status: 'pending', ticketNumber: 0,
+      barberName: '', receiptUrl: receiptUrl,
+      time: nowStr(), ts: Date.now()
+    };
+    addTicket(ticket, function(err) {
+      btn.disabled = false;
+      btn.textContent = 'احجز الآن 🎫';
+      if (err) { alert('حدث خطأ، تأكد من الاتصال بالإنترنت'); return; }
+      waOpen(ADMIN_WA,
+        '🔔 طلب حجز جديد!\n━━━━━━━━━━━━━━\n' +
+        '👤 الاسم: '    + name  + '\n' +
+        '📞 التليفون: ' + phone + '\n' +
+        '🧾 الإيصال: ' + receiptUrl + '\n━━━━━━━━━━━━━━\n' +
+        '⏳ في انتظار تأكيد التذكرة'
+      );
+      document.getElementById('formCard').classList.add('hidden');
+      document.getElementById('bookDone').classList.remove('hidden');
+      document.getElementById('dName').textContent  = name;
+      document.getElementById('dPhone').textContent = phone;
+    });
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'احجز الآن 🎫';
+    alert('فشل رفع الإيصال، تأكد من الاتصال وحاول مرة أخرى');
   });
 });
 
@@ -621,6 +721,8 @@ document.getElementById('btnNewBook').addEventListener('click', function() {
   document.getElementById('bookDone').classList.add('hidden');
   document.getElementById('formCard').classList.remove('hidden');
   document.getElementById('frmBook').reset();
+  document.getElementById('receiptPreview').style.display = 'none';
+  document.querySelector('.upload-area .up-text').textContent = 'اضغط لرفع صورة الإيصال';
 });
 
 /* ================================================================
@@ -679,16 +781,20 @@ function renderDashboard(tickets) {
   /* Table: Pending */
   document.getElementById('tblP').innerHTML = pending.length
     ? pending.map(function(t){
+        var receiptBtn = t.receiptUrl
+          ? '<img src="' + t.receiptUrl + '" class="receipt-thumb" data-action="view-receipt" data-id="' + t.id + '" title="عرض الإيصال"/>'
+          : '<span style="color:#ccc;font-size:12px">لا يوجد</span>';
         return '<tr>'
           + '<td><span style="color:#aaa;font-size:12px">⏳ قيد التحديد</span></td>'
           + '<td>' + t.name  + '</td>'
           + '<td>' + t.phone + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+          + '<td>' + receiptBtn + '</td>'
           + '<td><button class="btn btn-gr btn-sm" data-action="send-ticket" data-id="' + t.id + '">📨 إرسال التذكرة</button></td>'
           + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
           + '</tr>';
       }).join('')
-    : '<tr><td colspan="6" class="no-data">لا توجد طلبات منتظرة</td></tr>';
+    : '<tr><td colspan="7" class="no-data">لا توجد طلبات منتظرة</td></tr>';
 
   /* Table: Waiting */
   document.getElementById('tblW').innerHTML = waiting.length
@@ -926,6 +1032,19 @@ document.addEventListener('click', function(e) {
     return;
   }
 
+  /* ── عرض الإيصال ── */
+  if (action === 'view-receipt') {
+    var id = btn.dataset.id;
+    var t  = (window._tickets||[]).find(function(x){ return x.id === id; });
+    if (!t || !t.receiptUrl) return;
+    document.getElementById('mReceiptInfo').innerHTML =
+      '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + t.name + '</span></div>'
+      + '<div class="info-row"><span class="lbl">التليفون</span><span class="val">' + t.phone + '</span></div>';
+    document.getElementById('mReceiptImg').src = t.receiptUrl;
+    openModal('mReceipt');
+    return;
+  }
+
   /* ── حذف تذكرة → سلة المهملات ── */
   if (action === 'delete-ticket') {
     var id = btn.dataset.id;
@@ -1004,6 +1123,7 @@ document.getElementById('frmAdd').addEventListener('submit', function(e) {
   e.preventDefault();
   var name  = document.getElementById('addName').value.trim();
   var phone = document.getElementById('addPhone').value.trim();
+  var note  = document.getElementById('addNote').value.trim();
   if (!name || !phone) { alert('من فضلك أدخل الاسم والتليفون'); return; }
 
   fetchAll(function(err, tickets) {
@@ -1012,7 +1132,8 @@ document.getElementById('frmAdd').addEventListener('submit', function(e) {
     var newTicket = {
       id: uid(), name: name, phone: phone,
       status: 'waiting', ticketNumber: ticketNum,
-      barberName: '', time: nowStr(), ts: Date.now()
+      barberName: '', note: note, receiptUrl: '',
+      time: nowStr(), ts: Date.now()
     };
     addTicket(newTicket, function(err) {
       if (err) { toast('❌ خطأ في الحفظ'); return; }
@@ -1024,7 +1145,6 @@ document.getElementById('frmAdd').addEventListener('submit', function(e) {
       );
       toast('✅ تم الإضافة! رقم التذكرة: ' + ticketNum);
       document.getElementById('frmAdd').reset();
-      loadDashboard();
     });
   });
 });
