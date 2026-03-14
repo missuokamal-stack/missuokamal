@@ -97,6 +97,27 @@
     .b-pending{background:#ffe0e6;color:#d63031}
     .b-waiting{background:#e0f4ff;color:#0984e3}
     .b-finished{background:#e0fff4;color:#00b894}
+    .b-trash{background:#f5f5f5;color:#999}
+
+    /* Delete button */
+    .btn-del{background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:#fff}
+    .btn-del:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(238,90,36,.4)}
+
+    /* Trash accordion */
+    .s-trash{background:linear-gradient(135deg,#636e72,#2d3436)}
+
+    /* Developer credit */
+    .dev-credit{text-align:center;margin-top:10px;margin-bottom:4px;padding:14px 20px;background:rgba(255,255,255,.07);border-radius:14px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1)}
+    .dev-credit p{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px}
+    .dev-credit a{color:rgba(255,255,255,.8);font-size:13px;font-weight:700;text-decoration:none;letter-spacing:.3px}
+    .dev-credit a:hover{color:#fff}
+
+    /* Amount field in modal */
+    .modal input[type=number]{width:100%;padding:12px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;margin-top:10px;font-family:inherit;background:#fafafa}
+    .modal input[type=number]:focus{outline:none;border-color:var(--gr)}
+
+    /* Barber total */
+    .barber-total{font-size:12px;opacity:.8;margin-top:3px}
 
     /* Barbers */
     .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px}
@@ -206,6 +227,10 @@
         </div>
       </div>
     </div>
+    <div class="dev-credit">
+      <p>⚙️ تم تطوير هذا النظام بواسطة</p>
+      <a href="tel:01021102607">👨‍💻 المهندس مهند إيهاب التهامي — 01021102607</a>
+    </div>
   </div>
 
   <!-- ===== صفحة المسؤول ===== -->
@@ -266,7 +291,7 @@
         </div>
         <div class="acc-body" id="bodyPend">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>وقت الطلب</th><th>إجراء</th></tr></thead>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>وقت الطلب</th><th>إجراء</th><th>حذف</th></tr></thead>
             <tbody id="tblP"></tbody>
           </table></div>
         </div>
@@ -280,7 +305,7 @@
         </div>
         <div class="acc-body" id="bodyWait">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الوقت</th><th>إجراء</th></tr></thead>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الوقت</th><th>إجراء</th><th>حذف</th></tr></thead>
             <tbody id="tblW"></tbody>
           </table></div>
         </div>
@@ -294,7 +319,7 @@
         </div>
         <div class="acc-body" id="bodyDone">
           <div class="tbl-wrap"><table>
-            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الحلاق</th><th>الوقت</th></tr></thead>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الحلاق</th><th>المبلغ</th><th>الوقت</th><th>حذف</th></tr></thead>
             <tbody id="tblC"></tbody>
           </table></div>
         </div>
@@ -307,6 +332,13 @@
           <div class="acc-right"><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyBarbers">
+          <!-- جدول ملخص الحلاقين -->
+          <div class="tbl-wrap" style="margin:14px 0 10px">
+            <table>
+              <thead><tr><th>الحلاق</th><th>عدد الزبائن</th><th>إجمالي المبلغ</th></tr></thead>
+              <tbody id="tblBarbersSummary"></tbody>
+            </table>
+          </div>
           <div class="barbers-grid" id="barbersGrid"></div>
         </div>
       </div>
@@ -323,6 +355,20 @@
             <div class="fg"><label>رقم التليفون</label><input type="tel" id="addPhone" required/></div>
             <button type="submit" class="btn btn-pr btn-full">إضافة وإرسال التذكرة على الواتساب</button>
           </form>
+        </div>
+      </div>
+
+      <!-- Accordion: Trash -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyTrash">
+          <div class="acc-title">🗑️ سلة المهملات <span style="font-size:11px;color:#aaa;font-weight:400">(تُمسح تلقائياً بعد 7 أيام)</span></div>
+          <div class="acc-right"><span class="badge-cnt" id="cntTrash" style="background:linear-gradient(135deg,#636e72,#2d3436)">0</span><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyTrash">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الحالة</th><th>تاريخ الحذف</th></tr></thead>
+            <tbody id="tblTrash"></tbody>
+          </table></div>
         </div>
       </div>
 
@@ -352,6 +398,7 @@
       <option>أحمد كمال</option><option>محمد</option><option>محمود</option>
       <option>أحمد السيد</option><option>إبراهيم</option><option>باسم</option>
     </select>
+    <input type="number" id="inAmount" placeholder="💰 المبلغ المدفوع (جنيه) — إجباري" min="0" step="0.5"/>
     <div class="modal-btns">
       <button id="mDoneConfirm" class="btn btn-gr">تأكيد ✅</button>
       <button class="btn btn-gy close-modal" data-modal="mDone">إلغاء</button>
@@ -612,9 +659,10 @@ function renderDashboard(tickets) {
           + '<td>' + t.phone + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
           + '<td><button class="btn btn-gr btn-sm" data-action="send-ticket" data-id="' + t.id + '">📨 إرسال التذكرة</button></td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
           + '</tr>';
       }).join('')
-    : '<tr><td colspan="5" class="no-data">لا توجد طلبات منتظرة</td></tr>';
+    : '<tr><td colspan="6" class="no-data">لا توجد طلبات منتظرة</td></tr>';
 
   /* Table: Waiting */
   document.getElementById('tblW').innerHTML = waiting.length
@@ -625,9 +673,10 @@ function renderDashboard(tickets) {
           + '<td>' + t.phone + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
           + '<td><button class="btn btn-or btn-sm" data-action="done-haircut" data-id="' + t.id + '">✂️ تم الحلاقة</button></td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
           + '</tr>';
       }).join('')
-    : '<tr><td colspan="5" class="no-data">لا يوجد زبائن في الانتظار</td></tr>';
+    : '<tr><td colspan="6" class="no-data">لا يوجد زبائن في الانتظار</td></tr>';
 
   /* Table: Finished */
   var sortedF = finished.slice().sort(function(a,b){ return b.ticketNumber - a.ticketNumber; });
@@ -637,24 +686,89 @@ function renderDashboard(tickets) {
           + '<td><strong class="tnum-gr">' + t.ticketNumber + '</strong></td>'
           + '<td>' + t.name  + '</td>'
           + '<td>' + t.phone + '</td>'
-          + '<td style="color:var(--pr);font-weight:700">' + (t.barberName||'-') + '</td>'
+          + '<td>' + (t.barberName||'-') + '</td>'
+          + '<td style="color:#28a745;font-weight:700">' + (t.amount ? t.amount + ' ج' : '-') + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
           + '</tr>';
       }).join('')
-    : '<tr><td colspan="5" class="no-data">لا يوجد زبائن منتهين</td></tr>';
+    : '<tr><td colspan="7" class="no-data">لا يوجد زبائن منتهين</td></tr>';
 
   /* Barbers Grid */
+  var totalAll = 0;
   document.getElementById('barbersGrid').innerHTML = BARBERS.map(function(b){
-    var cnt = finished.filter(function(t){ return t.barberName === b; }).length;
+    var bTickets = finished.filter(function(t){ return t.barberName === b; });
+    var cnt   = bTickets.length;
+    var total = bTickets.reduce(function(s,t){ return s + (parseFloat(t.amount)||0); }, 0);
+    totalAll += total;
     return '<div class="barber-card" data-action="barber-stats" data-barber="' + b + '">'
       + '<div class="bc-name">' + b   + '</div>'
       + '<div class="bc-num">'  + cnt + '</div>'
       + '<div class="bc-lbl">زبون</div>'
+      + '<div class="barber-total">💰 ' + total + ' ج</div>'
       + '</div>';
   }).join('');
 
+  /* Barbers Summary Table */
+  var summaryRows = BARBERS.map(function(b){
+    var bTickets = finished.filter(function(t){ return t.barberName === b; });
+    var cnt   = bTickets.length;
+    var total = bTickets.reduce(function(s,t){ return s + (parseFloat(t.amount)||0); }, 0);
+    return '<tr>'
+      + '<td style="font-weight:700">' + b + '</td>'
+      + '<td style="text-align:center"><strong class="tnum">' + cnt + '</strong></td>'
+      + '<td style="color:#28a745;font-weight:800;font-size:15px">' + total + ' ج</td>'
+      + '</tr>';
+  }).join('');
+  summaryRows += '<tr style="background:#f0f4ff;border-top:2px solid #c5ceff">'
+    + '<td style="font-weight:800;color:#333">الإجمالي الكلي</td>'
+    + '<td style="text-align:center;font-weight:800">' + finished.length + '</td>'
+    + '<td style="color:#667eea;font-weight:800;font-size:16px">' + totalAll + ' ج</td>'
+    + '</tr>';
+  document.getElementById('tblBarbersSummary').innerHTML = summaryRows;
+
   /* حفظ نسخة محلية للبحث */
   window._tickets = tickets;
+
+  /* Trash */
+  loadTrash();
+}
+
+/* ================================================================
+   TRASH
+================================================================ */
+function loadTrash() {
+  /* مسح التذاكر القديمة (+7 أيام) أولاً */
+  var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  db.collection('trash').where('deletedAt', '<', cutoff).get().then(function(snap){
+    var batch = db.batch();
+    snap.forEach(function(doc){ batch.delete(doc.ref); });
+    if (!snap.empty) batch.commit();
+  });
+
+  db.collection('trash').get().then(function(snap){
+    var arr = [];
+    snap.forEach(function(doc){ arr.push(Object.assign({ id: doc.id }, doc.data())); });
+    renderTrash(arr);
+  });
+}
+
+function renderTrash(items) {
+  var cnt = items.length;
+  document.getElementById('cntTrash').textContent = cnt;
+  var sl = { pending:'⏳ منتظر', waiting:'💈 انتظار', finished:'✅ تم' };
+  document.getElementById('tblTrash').innerHTML = cnt
+    ? items.sort(function(a,b){ return b.deletedAt - a.deletedAt; }).map(function(t){
+        var daysLeft = Math.ceil((t.deletedAt + 7*24*60*60*1000 - Date.now()) / (24*60*60*1000));
+        return '<tr>'
+          + '<td>' + (t.ticketNumber||'-') + '</td>'
+          + '<td>' + t.name + '</td>'
+          + '<td>' + t.phone + '</td>'
+          + '<td><span class="badge b-trash">' + (sl[t.status]||t.status) + '</span></td>'
+          + '<td style="font-size:12px;color:#e17055">تُمسح بعد ' + daysLeft + ' يوم</td>'
+          + '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="no-data">سلة المهملات فارغة</td></tr>';
 }
 
 /* ================================================================
@@ -743,15 +857,17 @@ document.addEventListener('click', function(e) {
       + '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + ticket.name + '</span></div>'
       + '<div class="info-row"><span class="lbl">التليفون</span><span class="val">' + ticket.phone + '</span></div>';
     document.getElementById('selBarber').value = '';
+    document.getElementById('inAmount').value  = '';
 
     document.getElementById('mDoneConfirm').onclick = function() {
       var barber = document.getElementById('selBarber').value;
+      var amount = document.getElementById('inAmount').value.trim();
       if (!barber) { alert('من فضلك اختر الحلاق'); return; }
-      updateTicket(id, { status:'finished', barberName: barber, time: nowStr() }, function(err) {
+      if (!amount || isNaN(amount) || parseFloat(amount) < 0) { alert('من فضلك أدخل المبلغ المدفوع'); return; }
+      updateTicket(id, { status:'finished', barberName: barber, amount: parseFloat(amount), time: nowStr() }, function(err) {
         if (err) { toast('❌ خطأ في التحديث'); return; }
         closeModal('mDone');
-        loadDashboard();
-        toast('✅ تم تسجيل انتهاء الحلاقة');
+        toast('✅ تم تسجيل انتهاء الحلاقة — المبلغ: ' + amount + ' ج');
       });
     };
     openModal('mDone');
@@ -764,21 +880,42 @@ document.addEventListener('click', function(e) {
     var list = (window._tickets||[])
       .filter(function(t){ return t.status==='finished' && t.barberName===barber; })
       .sort(function(a,b){ return b.ticketNumber - a.ticketNumber; });
+    var total = list.reduce(function(s,t){ return s + (parseFloat(t.amount)||0); }, 0);
 
-    document.getElementById('mBarberTitle').textContent = '💈 ' + barber + ' — ' + list.length + ' زبون';
+    document.getElementById('mBarberTitle').textContent = '💈 ' + barber + ' — ' + list.length + ' زبون | إجمالي: ' + total + ' ج';
     document.getElementById('mBarberBody').innerHTML = list.length
       ? '<div class="tbl-wrap"><table>'
-        + '<thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الوقت</th></tr></thead><tbody>'
+        + '<thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>المبلغ</th><th>الوقت</th></tr></thead><tbody>'
         + list.map(function(t){
             return '<tr>'
               + '<td><strong class="tnum">' + t.ticketNumber + '</strong></td>'
               + '<td>' + t.name + '</td><td>' + t.phone + '</td>'
+              + '<td style="color:#28a745;font-weight:700">' + (t.amount ? t.amount + ' ج' : '-') + '</td>'
               + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
               + '</tr>';
           }).join('')
         + '</tbody></table></div>'
       : '<p class="no-data">لا توجد بيانات</p>';
     openModal('mBarber');
+    return;
+  }
+
+  /* ── حذف تذكرة → سلة المهملات ── */
+  if (action === 'delete-ticket') {
+    var id = btn.dataset.id;
+    var ticket = (window._tickets||[]).find(function(t){ return t.id === id; });
+    if (!ticket) return;
+    if (!confirm('هتحذف ' + ticket.name + ' — هتتنقل لسلة المهملات وتتمسح بعد 7 أيام. متأكد؟')) return;
+    var trashData = Object.assign({}, ticket, { deletedAt: Date.now() });
+    showLoading();
+    db.collection('trash').doc(id).set(trashData)
+      .then(function(){ return db.collection(COLL).doc(id).delete(); })
+      .then(function(){
+        hideLoading();
+        toast('🗑️ تم نقل ' + ticket.name + ' لسلة المهملات');
+        loadTrash();
+      })
+      .catch(function(){ hideLoading(); toast('❌ خطأ في الحذف'); });
     return;
   }
 
