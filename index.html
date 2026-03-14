@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>صالون مسيو كمال 🪒</title>
+
+  <!-- Firebase compat CDN — يشتغل محلياً وعلى GitHub Pages بدون import/module -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --pr:#667eea;--pr2:#764ba2;
+      --gr:#28a745;--gr2:#20c997;
+      --or:#fd7e14;--yw:#ffc107;
+      --tl:#17a2b8;--gy:#6c757d;
+      --shadow:0 10px 40px rgba(0,0,0,.28);
+    }
+    body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;padding:20px 14px 40px;color:#333}
+    .wrap{max-width:980px;margin:0 auto}
+
+    /* Header */
+    .site-header{text-align:center;margin-bottom:26px}
+    .site-header h1{color:#fff;font-size:2.2em;font-weight:800;text-shadow:0 3px 14px rgba(0,0,0,.5);letter-spacing:1px}
+    .site-header p{color:rgba(255,255,255,.55);font-size:13px;margin-top:5px}
+
+    /* Nav */
+    .nav{display:flex;gap:8px;margin-bottom:24px;background:rgba(255,255,255,.08);padding:6px;border-radius:16px;backdrop-filter:blur(10px)}
+    .nav button{flex:1;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.65);background:transparent;transition:all .25s;font-family:inherit}
+    .nav button.active{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;box-shadow:0 5px 20px rgba(102,126,234,.5)}
+
+    /* Card */
+    .card{background:#fff;border-radius:20px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+    .card-body{padding:26px}
+
+    /* Form */
+    .fg{margin-bottom:16px}
+    .fg label{display:block;margin-bottom:6px;color:#555;font-weight:700;font-size:14px}
+    .fg input,.fg select{width:100%;padding:12px 15px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;font-family:inherit;background:#fafafa;transition:border .2s,box-shadow .2s}
+    .fg input:focus,.fg select:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 4px rgba(102,126,234,.12);background:#fff}
+
+    /* Buttons */
+    .btn{padding:11px 20px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+    .btn-full{width:100%;justify-content:center;padding:14px;font-size:16px}
+    .btn-sm{padding:7px 13px;font-size:13px;border-radius:8px}
+    .btn-pr{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff}
+    .btn-pr:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(102,126,234,.4)}
+    .btn-gr{background:linear-gradient(135deg,var(--gr),var(--gr2));color:#fff}
+    .btn-gr:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(40,167,69,.35)}
+    .btn-or{background:linear-gradient(135deg,var(--yw),var(--or));color:#333}
+    .btn-or:hover{transform:translateY(-2px)}
+    .btn-tl{background:linear-gradient(135deg,var(--tl),#0dcaf0);color:#fff}
+    .btn-gy{background:var(--gy);color:#fff}
+    .btn-gy:hover{background:#5a6268}
+    .hidden{display:none!important}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px}
+    .stat{border-radius:16px;padding:18px 12px;text-align:center;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
+    .stat:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.3)}
+    .stat-icon{font-size:24px;margin-bottom:6px}
+    .stat-num{font-size:30px;font-weight:800;line-height:1}
+    .stat-lbl{font-size:11px;opacity:.85;margin-top:5px}
+    .s1{background:linear-gradient(135deg,#f093fb,#f5576c)}
+    .s2{background:linear-gradient(135deg,#4facfe,#00f2fe)}
+    .s3{background:linear-gradient(135deg,#43e97b,#38f9d7)}
+    .s4{background:linear-gradient(135deg,var(--pr),var(--pr2))}
+
+    /* Accordion */
+    .acc-hdr{display:flex;justify-content:space-between;align-items:center;padding:17px 22px;cursor:pointer;user-select:none;transition:background .2s;border-bottom:2px solid transparent}
+    .acc-hdr:hover{background:#f8f9ff}
+    .acc-hdr.open{border-bottom-color:#eef0ff}
+    .acc-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#333}
+    .acc-right{display:flex;align-items:center;gap:10px}
+    .badge-cnt{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700}
+    .acc-arrow{color:#bbb;font-size:16px;transition:transform .25s;display:inline-block}
+    .acc-hdr.open .acc-arrow{transform:rotate(180deg)}
+    .acc-body{display:none;padding:0 18px 18px}
+    .acc-body.open{display:block}
+
+    /* Table */
+    .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid #eee;margin-top:10px}
+    table{width:100%;border-collapse:collapse;min-width:480px}
+    thead tr{background:linear-gradient(135deg,var(--pr),var(--pr2))}
+    th{color:#fff;padding:11px 13px;text-align:right;font-size:13px;font-weight:600}
+    th:first-child{border-radius:0 12px 0 0}
+    th:last-child{border-radius:12px 0 0 0}
+    td{padding:10px 13px;border-bottom:1px solid #f2f2f2;font-size:13px;color:#444;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:#f8f9ff}
+    .no-data{text-align:center;color:#bbb;padding:28px;font-size:14px}
+
+    /* Badges */
+    .badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;display:inline-block}
+    .b-pending{background:#ffe0e6;color:#d63031}
+    .b-waiting{background:#e0f4ff;color:#0984e3}
+    .b-finished{background:#e0fff4;color:#00b894}
+
+    /* Barbers */
+    .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px}
+    .barber-card{background:linear-gradient(135deg,var(--pr),var(--pr2));border-radius:15px;padding:18px 12px;text-align:center;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 5px 18px rgba(102,126,234,.3)}
+    .barber-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(102,126,234,.5)}
+    .bc-name{font-size:14px;font-weight:700;margin-bottom:7px}
+    .bc-num{font-size:30px;font-weight:800;line-height:1}
+    .bc-lbl{font-size:11px;opacity:.8;margin-top:4px}
+
+    /* Search */
+    .search-row{display:flex;gap:8px;flex-wrap:wrap}
+    .search-row input{flex:1;min-width:200px;padding:11px 15px;border:2px solid #e8e8e8;border-radius:11px;font-size:14px;font-family:inherit;background:#fafafa}
+    .search-row input:focus{outline:none;border-color:var(--pr);background:#fff}
+
+    /* Ticket success */
+    .tick-success{text-align:center;padding:8px 0}
+    .tick-icon{font-size:65px;margin-bottom:8px}
+    .tick-title{font-size:21px;font-weight:800;color:var(--gr);margin-bottom:16px}
+    .tick-info{background:linear-gradient(135deg,#f0f4ff,#e8ecff);border:2px solid #c5ceff;border-radius:14px;padding:18px;margin-bottom:16px}
+    .tick-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #dde3ff}
+    .tick-row:last-child{border-bottom:none}
+    .tick-row span:first-child{color:#888;font-size:14px}
+    .tick-row span:last-child{font-weight:700;color:#333}
+    .tick-note{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:11px 15px;font-size:13px;color:#795548;margin-bottom:16px}
+
+    /* Admin top */
+    .adm-top{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;gap:10px}
+    .adm-top h2{color:#333;font-size:1.2em;margin:0}
+
+    /* Login */
+    .login-wrap{max-width:400px;margin:50px auto 0}
+    .login-icon{text-align:center;font-size:55px;margin-bottom:8px}
+
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
+    .modal{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.4);animation:popIn .22s ease}
+    .modal-wide{max-width:580px}
+    @keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-title{font-size:1.25em;font-weight:800;color:#333;margin-bottom:18px;padding-bottom:13px;border-bottom:2px solid #f0f0f0}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5}
+    .info-row:last-child{border-bottom:none}
+    .info-row .lbl{color:#888;font-size:14px}
+    .info-row .val{font-weight:700;color:#333;font-size:15px}
+    .modal-btns{display:flex;gap:10px;margin-top:20px}
+    .modal-btns .btn{flex:1;justify-content:center}
+    .modal select{width:100%;padding:12px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;margin-top:14px;font-family:inherit;background:#fafafa}
+    .modal select:focus{outline:none;border-color:var(--pr)}
+
+    /* Ticket number styles */
+    .tnum{color:var(--pr);font-size:20px;font-weight:800}
+    .tnum-gr{color:var(--gr);font-size:16px;font-weight:800}
+
+    /* Loading overlay */
+    .loading-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--pr),var(--pr2));z-index:99999;animation:loadBar 1.2s ease-in-out infinite}
+    @keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;animation:toastIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+    @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+    /* Responsive */
+    @media(max-width:640px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .barbers-grid{grid-template-columns:repeat(2,1fr)}
+      .site-header h1{font-size:1.7em}
+      .modal{padding:20px}
+    }
+    @media(max-width:400px){th,td{padding:8px 7px;font-size:12px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-header">
+    <h1>🪒 صالون مسيو كمال</h1>
+    <p>نظام حجز التذاكر الإلكتروني</p>
+  </div>
+
+  <div class="nav">
+    <button id="btnCustomer" class="active">✂️ حجز تذكرة</button>
+    <button id="btnAdmin">📊 لوحة المسؤول</button>
+  </div>
+
+  <!-- ===== صفحة الزبون ===== -->
+  <div id="pgCustomer">
+    <div id="formCard" class="card">
+      <div class="card-body">
+        <h2 style="color:#333;margin-bottom:18px;font-size:1.35em">🎫 احجز تذكرتك الآن</h2>
+        <form id="frmBook">
+          <div class="fg"><label>الاسم الكامل</label><input type="text" id="inName" placeholder="أدخل اسمك الكامل" required/></div>
+          <div class="fg"><label>رقم التليفون</label><input type="tel" id="inPhone" placeholder="01xxxxxxxxx" required/></div>
+          <button type="submit" class="btn btn-pr btn-full">احجز الآن 🎫</button>
+        </form>
+      </div>
+    </div>
+    <div id="bookDone" class="card hidden">
+      <div class="card-body">
+        <div class="tick-success">
+          <div class="tick-icon">✅</div>
+          <div class="tick-title">تم تسجيل طلبك!</div>
+          <div class="tick-info">
+            <div class="tick-row"><span>الاسم</span><span id="dName"></span></div>
+            <div class="tick-row"><span>التليفون</span><span id="dPhone"></span></div>
+          </div>
+          <div class="tick-note">⏳ انتظر — المسؤول هيبعتلك رقم تذكرتك على الواتساب قريباً</div>
+          <button id="btnNewBook" class="btn btn-gy btn-full">حجز جديد</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== صفحة المسؤول ===== -->
+  <div id="pgAdmin" class="hidden">
+
+    <!-- Login -->
+    <div id="pgLogin" class="login-wrap">
+      <div class="login-icon">🔐</div>
+      <div class="card">
+        <div class="card-body">
+          <h2 style="text-align:center;color:#333;margin-bottom:20px">تسجيل دخول المسؤول</h2>
+          <form id="frmLogin">
+            <div class="fg"><label>كلمة المرور</label><input type="password" id="inPass" placeholder="أدخل كلمة المرور" required/></div>
+            <button type="submit" class="btn btn-pr btn-full">دخول</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="pgPanel" class="hidden">
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="adm-top">
+          <h2>📊 لوحة التحكم</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="btnRefresh" class="btn btn-tl btn-sm">🔄 تحديث</button>
+            <button id="btnLogout" class="btn btn-gy btn-sm">خروج 🚪</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat s1" data-action="stat-click" data-target="bodyPend"><div class="stat-icon">⏳</div><div class="stat-num" id="stP">0</div><div class="stat-lbl">طلبات منتظرة</div></div>
+          <div class="stat s2" data-action="stat-click" data-target="bodyWait"><div class="stat-icon">💈</div><div class="stat-num" id="stW">0</div><div class="stat-lbl">في الانتظار</div></div>
+          <div class="stat s3" data-action="stat-click" data-target="bodyDone"><div class="stat-icon">✅</div><div class="stat-num" id="stC">0</div><div class="stat-lbl">تم الانتهاء</div></div>
+          <div class="stat s4" data-action="stat-click" data-target="bodyPend"><div class="stat-icon">🎫</div><div class="stat-num" id="stT">0</div><div class="stat-lbl">إجمالي اليوم</div></div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="card">
+        <div class="card-body">
+          <h2 style="color:#333;margin-bottom:14px;font-size:1.05em">🔍 البحث</h2>
+          <div class="search-row">
+            <input type="text" id="inSearch" placeholder="ابحث بالاسم أو رقم التذكرة أو التليفون..."/>
+            <button id="btnSearch" class="btn btn-pr">بحث</button>
+            <button id="btnClearSearch" class="btn btn-gy">مسح</button>
+          </div>
+          <div id="searchOut"></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Pending -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyPend">
+          <div class="acc-title">⏳ الطلبات المنتظرة</div>
+          <div class="acc-right"><span class="badge-cnt" id="cntP">0</span><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyPend">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>وقت الطلب</th><th>إجراء</th></tr></thead>
+            <tbody id="tblP"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Waiting -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyWait">
+          <div class="acc-title">💈 في الانتظار</div>
+          <div class="acc-right"><span class="badge-cnt" id="cntW">0</span><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyWait">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الوقت</th><th>إجراء</th></tr></thead>
+            <tbody id="tblW"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Finished -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyDone">
+          <div class="acc-title">✅ تم الانتهاء</div>
+          <div class="acc-right"><span class="badge-cnt" id="cntC">0</span><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyDone">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الحلاق</th><th>الوقت</th></tr></thead>
+            <tbody id="tblC"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Barbers -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyBarbers">
+          <div class="acc-title">💈 إحصائيات الحلاقين</div>
+          <div class="acc-right"><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyBarbers">
+          <div class="barbers-grid" id="barbersGrid"></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Add Manual -->
+      <div class="card">
+        <div class="acc-hdr" data-target="bodyAdd">
+          <div class="acc-title">➕ إضافة عميل يدوي</div>
+          <div class="acc-right"><span class="acc-arrow">▼</span></div>
+        </div>
+        <div class="acc-body" id="bodyAdd">
+          <form id="frmAdd">
+            <div class="fg"><label>الاسم</label><input type="text" id="addName" required/></div>
+            <div class="fg"><label>رقم التليفون</label><input type="tel" id="addPhone" required/></div>
+            <button type="submit" class="btn btn-pr btn-full">إضافة وإرسال التذكرة على الواتساب</button>
+          </form>
+        </div>
+      </div>
+
+    </div><!-- /pgPanel -->
+  </div><!-- /pgAdmin -->
+</div><!-- /wrap -->
+
+
+<!-- ===== MODALS ===== -->
+<div id="mSend" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">📨 إرسال رقم التذكرة</div>
+    <div id="mSendInfo"></div>
+    <div class="modal-btns">
+      <button id="mSendConfirm" class="btn btn-gr">إرسال على الواتساب ✅</button>
+      <button class="btn btn-gy close-modal" data-modal="mSend">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="mDone" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">✂️ تم الحلاقة</div>
+    <div id="mDoneInfo"></div>
+    <select id="selBarber">
+      <option value="">— اختر الحلاق —</option>
+      <option>أحمد كمال</option><option>محمد</option><option>محمود</option>
+      <option>أحمد السيد</option><option>إبراهيم</option><option>باسم</option>
+    </select>
+    <div class="modal-btns">
+      <button id="mDoneConfirm" class="btn btn-gr">تأكيد ✅</button>
+      <button class="btn btn-gy close-modal" data-modal="mDone">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="mBarber" class="overlay hidden">
+  <div class="modal modal-wide">
+    <div class="modal-title" id="mBarberTitle"></div>
+    <div id="mBarberBody"></div>
+    <div class="modal-btns"><button class="btn btn-gy btn-full close-modal" data-modal="mBarber">إغلاق</button></div>
+  </div>
+</div>
+
+<div id="mDetails" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">📋 تفاصيل الزبون</div>
+    <div id="mDetailsBody"></div>
+    <div class="modal-btns"><button class="btn btn-gy btn-full close-modal" data-modal="mDetails">إغلاق</button></div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   CONFIG
+================================================================ */
+var ADMIN_PASS = 'admin123';
+var ADMIN_WA   = '201060602836';
+var BARBERS    = ['أحمد كمال','محمد','محمود','أحمد السيد','إبراهيم','باسم'];
+
+/* ================================================================
+   FIREBASE INIT  (compat SDK — يشتغل بدون import/module)
+================================================================ */
+var firebaseConfig = {
+  apiKey:            "AIzaSyAVw59TbHce0ZWd2LqOv5wYoMYn-k-RadE",
+  authDomain:        "missuo-kamal.firebaseapp.com",
+  projectId:         "missuo-kamal",
+  storageBucket:     "missuo-kamal.firebasestorage.app",
+  messagingSenderId: "106229123694",
+  appId:             "1:106229123694:web:772e9dd8ba44b709f3747f"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+var COLL = 'tickets'; // اسم الـ collection في Firestore
+
+/* ================================================================
+   LOADING / TOAST UI
+================================================================ */
+function showLoading() {
+  if (document.getElementById('loadBar')) return;
+  var el = document.createElement('div');
+  el.id = 'loadBar'; el.className = 'loading-bar';
+  document.body.appendChild(el);
+}
+function hideLoading() {
+  var el = document.getElementById('loadBar');
+  if (el) el.remove();
+}
+function toast(msg, ms) {
+  var el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, ms || 2500);
+}
+
+/* ================================================================
+   HELPERS
+================================================================ */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function nowStr() { return new Date().toLocaleString('ar-EG'); }
+
+function waOpen(phone, msg) {
+  var n = (phone+'').replace(/\D/g,'');
+  if (n.startsWith('0')) n = '2' + n;
+  window.open('https://wa.me/' + n + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* حساب رقم التذكرة التالي = أعلى رقم موجود + 1 */
+function nextTicketNumber(tickets) {
+  if (!tickets.length) return 1;
+  return Math.max.apply(null, tickets.map(function(t){ return t.ticketNumber || 0; })) + 1;
+}
+
+/* ================================================================
+   FIRESTORE CRUD
+================================================================ */
+/* Real-time listener — يحدث الداشبورد تلقائياً */
+var _unsubscribe = null;
+function startRealtimeListener() {
+  if (_unsubscribe) return;
+  _unsubscribe = db.collection(COLL).onSnapshot(function(snap) {
+    var arr = [];
+    snap.forEach(function(doc){ arr.push(Object.assign({ id: doc.id }, doc.data())); });
+    window._tickets = arr;
+    renderDashboard(arr);
+  }, function(){ toast('❌ خطأ في الاتصال المباشر'); });
+}
+function stopRealtimeListener() {
+  if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
+}
+
+/* جلب كل التذاكر مرة واحدة */
+function fetchAll(cb) {
+  showLoading();
+  db.collection(COLL).get()
+    .then(function(snap) {
+      hideLoading();
+      var arr = [];
+      snap.forEach(function(doc){ arr.push(Object.assign({ id: doc.id }, doc.data())); });
+      cb(null, arr);
+    })
+    .catch(function(err){ hideLoading(); cb(err); });
+}
+
+/* إضافة تذكرة جديدة */
+function addTicket(data, cb) {
+  showLoading();
+  db.collection(COLL).doc(data.id).set(data)
+    .then(function(){ hideLoading(); cb && cb(null); })
+    .catch(function(err){ hideLoading(); cb && cb(err); });
+}
+
+/* تحديث حقول في تذكرة */
+function updateTicket(id, fields, cb) {
+  showLoading();
+  db.collection(COLL).doc(id).update(fields)
+    .then(function(){ hideLoading(); cb && cb(null); })
+    .catch(function(err){ hideLoading(); cb && cb(err); });
+}
+
+/* ================================================================
+   MODAL HELPERS
+================================================================ */
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+/* ================================================================
+   AUTH
+================================================================ */
+function isLoggedIn() { return sessionStorage.getItem('adm') === ADMIN_PASS; }
+
+/* ================================================================
+   PAGE NAVIGATION
+================================================================ */
+function showPage(page) {
+  document.getElementById('pgCustomer').classList.toggle('hidden', page !== 'customer');
+  document.getElementById('pgAdmin').classList.toggle('hidden', page !== 'admin');
+  document.getElementById('btnCustomer').classList.toggle('active', page === 'customer');
+  document.getElementById('btnAdmin').classList.toggle('active', page === 'admin');
+  if (page === 'admin' && isLoggedIn()) loadDashboard();
+}
+
+document.getElementById('btnCustomer').addEventListener('click', function(){ showPage('customer'); });
+document.getElementById('btnAdmin').addEventListener('click', function(){ showPage('admin'); });
+
+/* ================================================================
+   CUSTOMER: BOOKING
+================================================================ */
+document.getElementById('frmBook').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var name  = document.getElementById('inName').value.trim();
+  var phone = document.getElementById('inPhone').value.trim();
+  if (!name || !phone) { alert('من فضلك أدخل الاسم والتليفون'); return; }
+
+  var ticket = {
+    id:           uid(),
+    name:         name,
+    phone:        phone,
+    status:       'pending',
+    ticketNumber: 0,
+    barberName:   '',
+    time:         nowStr(),
+    ts:           Date.now()
+  };
+
+  addTicket(ticket, function(err) {
+    if (err) { alert('حدث خطأ، تأكد من الاتصال بالإنترنت'); return; }
+    // إشعار المسؤول
+    waOpen(ADMIN_WA,
+      '🔔 طلب حجز جديد!\n━━━━━━━━━━━━━━\n' +
+      '👤 الاسم: '    + name  + '\n' +
+      '📞 التليفون: ' + phone + '\n━━━━━━━━━━━━━━\n' +
+      '⏳ في انتظار تأكيد التذكرة'
+    );
+    document.getElementById('formCard').classList.add('hidden');
+    document.getElementById('bookDone').classList.remove('hidden');
+    document.getElementById('dName').textContent  = name;
+    document.getElementById('dPhone').textContent = phone;
+  });
+});
+
+document.getElementById('btnNewBook').addEventListener('click', function() {
+  document.getElementById('bookDone').classList.add('hidden');
+  document.getElementById('formCard').classList.remove('hidden');
+  document.getElementById('frmBook').reset();
+});
+
+/* ================================================================
+   ADMIN: LOGIN / LOGOUT
+================================================================ */
+document.getElementById('frmLogin').addEventListener('submit', function(e) {
+  e.preventDefault();
+  if (document.getElementById('inPass').value === ADMIN_PASS) {
+    sessionStorage.setItem('adm', ADMIN_PASS);
+    document.getElementById('pgLogin').classList.add('hidden');
+    document.getElementById('pgPanel').classList.remove('hidden');
+    loadDashboard();
+  } else {
+    alert('كلمة المرور غير صحيحة');
+    document.getElementById('inPass').value = '';
+  }
+});
+
+document.getElementById('btnRefresh').addEventListener('click', function() {
+  stopRealtimeListener();
+  startRealtimeListener();
+  toast('🔄 جاري التحديث...');
+});
+
+document.getElementById('btnLogout').addEventListener('click', function() {
+  stopRealtimeListener();
+  sessionStorage.removeItem('adm');
+  document.getElementById('pgLogin').classList.remove('hidden');
+  document.getElementById('pgPanel').classList.add('hidden');
+  document.getElementById('inPass').value = '';
+});
+
+/* ================================================================
+   DASHBOARD — جلب البيانات من Firestore وعرضها
+================================================================ */
+function loadDashboard() {
+  startRealtimeListener();
+}
+
+function renderDashboard(tickets) {
+  var pending  = tickets.filter(function(t){ return t.status === 'pending';  });
+  var waiting  = tickets.filter(function(t){ return t.status === 'waiting';  });
+  var finished = tickets.filter(function(t){ return t.status === 'finished'; });
+  var todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  var todayCount = tickets.filter(function(t){ return t.ts >= todayStart.getTime(); }).length;
+
+  /* Stats */
+  document.getElementById('stP').textContent  = pending.length;
+  document.getElementById('stW').textContent  = waiting.length;
+  document.getElementById('stC').textContent  = finished.length;
+  document.getElementById('stT').textContent  = todayCount;
+  document.getElementById('cntP').textContent = pending.length;
+  document.getElementById('cntW').textContent = waiting.length;
+  document.getElementById('cntC').textContent = finished.length;
+
+  /* Table: Pending */
+  document.getElementById('tblP').innerHTML = pending.length
+    ? pending.map(function(t){
+        return '<tr>'
+          + '<td><span style="color:#aaa;font-size:12px">⏳ قيد التحديد</span></td>'
+          + '<td>' + t.name  + '</td>'
+          + '<td>' + t.phone + '</td>'
+          + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+          + '<td><button class="btn btn-gr btn-sm" data-action="send-ticket" data-id="' + t.id + '">📨 إرسال التذكرة</button></td>'
+          + '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="no-data">لا توجد طلبات منتظرة</td></tr>';
+
+  /* Table: Waiting */
+  document.getElementById('tblW').innerHTML = waiting.length
+    ? waiting.map(function(t){
+        return '<tr>'
+          + '<td><strong class="tnum">' + t.ticketNumber + '</strong></td>'
+          + '<td>' + t.name  + '</td>'
+          + '<td>' + t.phone + '</td>'
+          + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+          + '<td><button class="btn btn-or btn-sm" data-action="done-haircut" data-id="' + t.id + '">✂️ تم الحلاقة</button></td>'
+          + '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="no-data">لا يوجد زبائن في الانتظار</td></tr>';
+
+  /* Table: Finished */
+  var sortedF = finished.slice().sort(function(a,b){ return b.ticketNumber - a.ticketNumber; });
+  document.getElementById('tblC').innerHTML = sortedF.length
+    ? sortedF.map(function(t){
+        return '<tr>'
+          + '<td><strong class="tnum-gr">' + t.ticketNumber + '</strong></td>'
+          + '<td>' + t.name  + '</td>'
+          + '<td>' + t.phone + '</td>'
+          + '<td style="color:var(--pr);font-weight:700">' + (t.barberName||'-') + '</td>'
+          + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+          + '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="no-data">لا يوجد زبائن منتهين</td></tr>';
+
+  /* Barbers Grid */
+  document.getElementById('barbersGrid').innerHTML = BARBERS.map(function(b){
+    var cnt = finished.filter(function(t){ return t.barberName === b; }).length;
+    return '<div class="barber-card" data-action="barber-stats" data-barber="' + b + '">'
+      + '<div class="bc-name">' + b   + '</div>'
+      + '<div class="bc-num">'  + cnt + '</div>'
+      + '<div class="bc-lbl">زبون</div>'
+      + '</div>';
+  }).join('');
+
+  /* حفظ نسخة محلية للبحث */
+  window._tickets = tickets;
+}
+
+/* ================================================================
+   ACCORDION
+================================================================ */
+document.addEventListener('click', function(e) {
+  var hdr = e.target.closest('.acc-hdr');
+  if (hdr && !e.target.closest('button')) {
+    var body = document.getElementById(hdr.dataset.target);
+    if (!body) return;
+    var open = body.classList.contains('open');
+    body.classList.toggle('open', !open);
+    hdr.classList.toggle('open', !open);
+  }
+});
+
+/* ================================================================
+   EVENT DELEGATION — كل الأزرار الديناميكية
+================================================================ */
+document.addEventListener('click', function(e) {
+
+  /* إغلاق modal */
+  var closeBtn = e.target.closest('.close-modal');
+  if (closeBtn) { closeModal(closeBtn.dataset.modal); return; }
+  if (e.target.classList.contains('overlay')) { closeModal(e.target.id); return; }
+
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.dataset.action;
+
+  /* ── stat click — يفتح الـ accordion المناسب ── */
+  if (action === 'stat-click') {
+    var targetId = btn.dataset.target;
+    var body = document.getElementById(targetId);
+    var hdr  = body ? body.previousElementSibling : null;
+    if (body && !body.classList.contains('open')) {
+      body.classList.add('open');
+      if (hdr) hdr.classList.add('open');
+    }
+    if (body) body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  /* ── إرسال التذكرة ── */
+  if (action === 'send-ticket') {
+    var id = btn.dataset.id;
+    fetchAll(function(err, tickets) {
+      if (err) { toast('❌ خطأ في الاتصال'); return; }
+      var ticket = tickets.find(function(t){ return t.id === id; });
+      if (!ticket) return;
+      var nextNum = nextTicketNumber(tickets);
+
+      document.getElementById('mSendInfo').innerHTML =
+        '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + ticket.name + '</span></div>'
+        + '<div class="info-row"><span class="lbl">التليفون</span><span class="val">' + ticket.phone + '</span></div>'
+        + '<div class="info-row"><span class="lbl">رقم التذكرة المتاح</span><span class="val tnum">' + nextNum + '</span></div>';
+
+      document.getElementById('mSendConfirm').onclick = function() {
+        updateTicket(id, { status:'waiting', ticketNumber: nextNum, time: nowStr() }, function(err) {
+          if (err) { toast('❌ خطأ في التحديث'); return; }
+          waOpen(ticket.phone,
+            '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
+            '👤 الاسم: '       + ticket.name + '\n' +
+            '🎟️ رقم تذكرتك: ' + nextNum     + '\n━━━━━━━━━━━━━━\n' +
+            '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
+          );
+          closeModal('mSend');
+          loadDashboard();
+          toast('✅ تم إرسال التذكرة رقم ' + nextNum);
+        });
+      };
+      openModal('mSend');
+    });
+    return;
+  }
+
+  /* ── تم الحلاقة ── */
+  if (action === 'done-haircut') {
+    var id = btn.dataset.id;
+    var ticket = (window._tickets||[]).find(function(t){ return t.id === id; });
+    if (!ticket) return;
+
+    document.getElementById('mDoneInfo').innerHTML =
+      '<div class="info-row"><span class="lbl">رقم التذكرة</span><span class="val tnum">' + ticket.ticketNumber + '</span></div>'
+      + '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + ticket.name + '</span></div>'
+      + '<div class="info-row"><span class="lbl">التليفون</span><span class="val">' + ticket.phone + '</span></div>';
+    document.getElementById('selBarber').value = '';
+
+    document.getElementById('mDoneConfirm').onclick = function() {
+      var barber = document.getElementById('selBarber').value;
+      if (!barber) { alert('من فضلك اختر الحلاق'); return; }
+      updateTicket(id, { status:'finished', barberName: barber, time: nowStr() }, function(err) {
+        if (err) { toast('❌ خطأ في التحديث'); return; }
+        closeModal('mDone');
+        loadDashboard();
+        toast('✅ تم تسجيل انتهاء الحلاقة');
+      });
+    };
+    openModal('mDone');
+    return;
+  }
+
+  /* ── إحصائيات الحلاق ── */
+  if (action === 'barber-stats') {
+    var barber = btn.dataset.barber;
+    var list = (window._tickets||[])
+      .filter(function(t){ return t.status==='finished' && t.barberName===barber; })
+      .sort(function(a,b){ return b.ticketNumber - a.ticketNumber; });
+
+    document.getElementById('mBarberTitle').textContent = '💈 ' + barber + ' — ' + list.length + ' زبون';
+    document.getElementById('mBarberBody').innerHTML = list.length
+      ? '<div class="tbl-wrap"><table>'
+        + '<thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الوقت</th></tr></thead><tbody>'
+        + list.map(function(t){
+            return '<tr>'
+              + '<td><strong class="tnum">' + t.ticketNumber + '</strong></td>'
+              + '<td>' + t.name + '</td><td>' + t.phone + '</td>'
+              + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
+              + '</tr>';
+          }).join('')
+        + '</tbody></table></div>'
+      : '<p class="no-data">لا توجد بيانات</p>';
+    openModal('mBarber');
+    return;
+  }
+
+  /* ── تفاصيل من البحث ── */
+  if (action === 'show-details') {
+    var id = btn.dataset.id;
+    var t  = (window._tickets||[]).find(function(x){ return x.id === id; });
+    if (!t) return;
+    var sl = { pending:'⏳ منتظر', waiting:'💈 في الانتظار', finished:'✅ تم الانتهاء' };
+    document.getElementById('mDetailsBody').innerHTML =
+      '<div class="info-row"><span class="lbl">رقم التذكرة</span><span class="val tnum">' + (t.ticketNumber||'لم يُحدد') + '</span></div>'
+      + '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + t.name + '</span></div>'
+      + '<div class="info-row"><span class="lbl">التليفون</span><span class="val">' + t.phone + '</span></div>'
+      + '<div class="info-row"><span class="lbl">الحالة</span><span class="val">' + (sl[t.status]||t.status) + '</span></div>'
+      + (t.barberName ? '<div class="info-row"><span class="lbl">الحلاق</span><span class="val">' + t.barberName + '</span></div>' : '')
+      + '<div class="info-row"><span class="lbl">الوقت</span><span class="val" style="font-size:13px">' + (t.time||'-') + '</span></div>';
+    openModal('mDetails');
+    return;
+  }
+});
+
+/* ================================================================
+   SEARCH
+================================================================ */
+document.getElementById('btnSearch').addEventListener('click', doSearch);
+document.getElementById('inSearch').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
+document.getElementById('btnClearSearch').addEventListener('click', function(){
+  document.getElementById('inSearch').value = '';
+  document.getElementById('searchOut').innerHTML = '';
+});
+
+function doSearch() {
+  var q = document.getElementById('inSearch').value.trim();
+  if (!q) { alert('أدخل كلمة البحث'); return; }
+  var tickets = window._tickets || [];
+  var results = tickets.filter(function(t){
+    return t.name.includes(q) || t.phone.includes(q) || String(t.ticketNumber) === q;
+  });
+  var sl = function(s){ return s==='pending'?'منتظر':s==='waiting'?'في الانتظار':'تم'; };
+  var sc = function(s){ return s==='pending'?'b-pending':s==='waiting'?'b-waiting':'b-finished'; };
+  document.getElementById('searchOut').innerHTML = results.length
+    ? '<div class="tbl-wrap" style="margin-top:12px"><table>'
+      + '<thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>الحالة</th><th>تفاصيل</th></tr></thead><tbody>'
+      + results.map(function(t){
+          return '<tr>'
+            + '<td><strong>' + (t.ticketNumber||'-') + '</strong></td>'
+            + '<td>' + t.name + '</td><td>' + t.phone + '</td>'
+            + '<td><span class="badge ' + sc(t.status) + '">' + sl(t.status) + '</span></td>'
+            + '<td><button class="btn btn-tl btn-sm" data-action="show-details" data-id="' + t.id + '">تفاصيل</button></td>'
+            + '</tr>';
+        }).join('')
+      + '</tbody></table></div>'
+    : '<p class="no-data">لا توجد نتائج</p>';
+}
+
+/* ================================================================
+   ADD MANUAL CLIENT
+================================================================ */
+document.getElementById('frmAdd').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var name  = document.getElementById('addName').value.trim();
+  var phone = document.getElementById('addPhone').value.trim();
+  if (!name || !phone) { alert('من فضلك أدخل الاسم والتليفون'); return; }
+
+  fetchAll(function(err, tickets) {
+    if (err) { toast('❌ خطأ في الاتصال'); return; }
+    var ticketNum = nextTicketNumber(tickets);
+    var newTicket = {
+      id: uid(), name: name, phone: phone,
+      status: 'waiting', ticketNumber: ticketNum,
+      barberName: '', time: nowStr(), ts: Date.now()
+    };
+    addTicket(newTicket, function(err) {
+      if (err) { toast('❌ خطأ في الحفظ'); return; }
+      waOpen(phone,
+        '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
+        '👤 الاسم: '       + name      + '\n' +
+        '🎟️ رقم تذكرتك: ' + ticketNum + '\n━━━━━━━━━━━━━━\n' +
+        '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
+      );
+      toast('✅ تم الإضافة! رقم التذكرة: ' + ticketNum);
+      document.getElementById('frmAdd').reset();
+      loadDashboard();
+    });
+  });
+});
+
+/* ================================================================
+   INIT
+================================================================ */
+(function init() {
+  if (isLoggedIn()) {
+    document.getElementById('pgLogin').classList.add('hidden');
+    document.getElementById('pgPanel').classList.remove('hidden');
+    loadDashboard();
+  }
+})();
+</script>
+</body>
+</html>
