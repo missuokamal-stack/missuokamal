@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>صالون مسيو كمال 🪒</title>
+  <title>صالون مسيو كمال | نظام الحجز</title>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <!-- Firebase compat CDN — يشتغل محلياً وعلى GitHub Pages بدون import/module -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -14,229 +18,266 @@
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
     :root{
-      --pr:#667eea;--pr2:#764ba2;
-      --gr:#28a745;--gr2:#20c997;
-      --or:#fd7e14;--yw:#ffc107;
-      --tl:#17a2b8;--gy:#6c757d;
-      --shadow:0 10px 40px rgba(0,0,0,.28);
+      /* Premium Dark Theme Colors */
+      --bg: #121212;
+      --bg-gradient: linear-gradient(135deg, #0f172a, #1e1b4b, #111827);
+      
+      /* Accents: Gold/Copper */
+      --pr: #d4af37; /* Gold */
+      --pr2: #b8860b; /* Dark Goldenrod */
+      
+      /* Glassmorphism */
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      
+      /* Status Colors adapted for dark mode */
+      --gr: #10b981; 
+      --gr2: #059669;
+      --or: #f59e0b; 
+      --yw: #fbbf24;
+      --tl: #0ea5e9; 
+      --gy: #4b5563;
+      
+      /* Text Colors */
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
     }
-    body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;padding:20px 14px 40px;color:#333}
-    .wrap{max-width:980px;margin:0 auto}
+    body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg-gradient);min-height:100vh;padding:20px 14px 40px;color:var(--text-main);position:relative;}
+    /* Background pattern/image layer would go here if needed, but the dark gradient is premium */
+    
+    .wrap{max-width:980px;margin:0 auto;position:relative;z-index:2}
 
     /* Header */
     .site-header{text-align:center;margin-bottom:26px}
-    .site-header h1{color:#fff;font-size:2.2em;font-weight:800;text-shadow:0 3px 14px rgba(0,0,0,.5);letter-spacing:1px}
-    .site-header p{color:rgba(255,255,255,.55);font-size:13px;margin-top:5px}
+    .site-header h1{color:var(--pr);font-size:2.4em;font-weight:800;text-shadow:0 0 15px rgba(212,175,55,.3);letter-spacing:1px;margin-bottom:8px}
+    .site-header p{color:var(--text-muted);font-size:15px;letter-spacing:0.5px}
 
     /* Nav */
-    .nav{display:flex;gap:8px;margin-bottom:24px;background:rgba(255,255,255,.08);padding:6px;border-radius:16px;backdrop-filter:blur(10px)}
-    .nav button{flex:1;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.65);background:transparent;transition:all .25s;font-family:inherit}
-    .nav button.active{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;box-shadow:0 5px 20px rgba(102,126,234,.5)}
+    .nav{display:flex;gap:12px;margin-bottom:28px;background:var(--glass-bg);padding:8px;border-radius:16px;backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+    .nav button{flex:1;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;color:var(--text-muted);background:transparent;transition:all .3s ease;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+    .nav button:hover{color:var(--text-main);background:rgba(255,255,255,0.03)}
+    .nav button.active{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#000;box-shadow:0 8px 25px rgba(212,175,55,.4)}
 
-    /* Card */
-    .card{background:#fff;border-radius:20px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
-    .card-body{padding:26px}
+    /* Card (Glassmorphism) */
+    .card{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:24px;box-shadow:var(--glass-shadow);margin-bottom:22px;overflow:hidden;transition:transform 0.3s ease, box-shadow 0.3s ease}
+    .card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.4);border-color:rgba(255,255,255,0.15)}
+    .card-body{padding:30px}
 
     /* Form */
-    .fg{margin-bottom:16px}
-    .fg label{display:block;margin-bottom:6px;color:#555;font-weight:700;font-size:14px}
-    .fg input,.fg select{width:100%;padding:12px 15px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;font-family:inherit;background:#fafafa;transition:border .2s,box-shadow .2s}
-    .fg input:focus,.fg select:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 4px rgba(102,126,234,.12);background:#fff}
+    .fg{margin-bottom:20px}
+    .fg label{display:block;margin-bottom:8px;color:var(--text-main);font-weight:600;font-size:15px;letter-spacing:0.3px}
+    .fg input,.fg select{width:100%;padding:14px 18px;border:1px solid var(--glass-border);border-radius:14px;font-size:15px;font-family:inherit;background:rgba(0,0,0,0.2);color:var(--text-main);transition:all .3s ease}
+    .fg input::placeholder{color:#6b7280}
+    .fg input:focus,.fg select:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 4px rgba(212,175,55,.15);background:rgba(0,0,0,0.4)}
+    .fg select option{background:#1e293b;color:#fff}
 
     /* Buttons */
-    .btn{padding:11px 20px;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
-    .btn-full{width:100%;justify-content:center;padding:14px;font-size:16px}
-    .btn-sm{padding:7px 13px;font-size:13px;border-radius:8px}
-    .btn-pr{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff}
-    .btn-pr:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(102,126,234,.4)}
+    .btn{padding:12px 22px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all .3s ease;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;letter-spacing:0.5px}
+    .btn-full{width:100%;justify-content:center;padding:16px;font-size:17px}
+    .btn-sm{padding:8px 14px;font-size:13px;border-radius:10px}
+    .btn-pr{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#000}
+    .btn-pr:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(212,175,55,.3)}
     .btn-gr{background:linear-gradient(135deg,var(--gr),var(--gr2));color:#fff}
-    .btn-gr:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(40,167,69,.35)}
-    .btn-or{background:linear-gradient(135deg,var(--yw),var(--or));color:#333}
-    .btn-or:hover{transform:translateY(-2px)}
-    .btn-tl{background:linear-gradient(135deg,var(--tl),#0dcaf0);color:#fff}
-    .btn-gy{background:var(--gy);color:#fff}
-    .btn-gy:hover{background:#5a6268}
+    .btn-gr:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(16,185,129,.3)}
+    .btn-or{background:linear-gradient(135deg,var(--yw),var(--or));color:#000}
+    .btn-or:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(245,158,11,.3)}
+    .btn-tl{background:linear-gradient(135deg,var(--tl),#0284c7);color:#fff}
+    .btn-tl:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(14,165,233,.3)}
+    .btn-gy{background:var(--gy);color:#fff;border:1px solid rgba(255,255,255,0.1)}
+    .btn-gy:hover{background:#374151}
     .hidden{display:none!important}
 
     /* Stats */
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px}
-    .stat{border-radius:16px;padding:18px 12px;text-align:center;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
-    .stat:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.3)}
-    .stat-icon{font-size:24px;margin-bottom:6px}
-    .stat-num{font-size:30px;font-weight:800;line-height:1}
-    .stat-lbl{font-size:11px;opacity:.85;margin-top:5px}
-    .s1{background:linear-gradient(135deg,#f093fb,#f5576c)}
-    .s2{background:linear-gradient(135deg,#4facfe,#00f2fe)}
-    .s3{background:linear-gradient(135deg,#43e97b,#38f9d7)}
-    .s4{background:linear-gradient(135deg,var(--pr),var(--pr2))}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px}
+    .stat{border-radius:20px;padding:22px 14px;text-align:center;color:#fff;cursor:pointer;transition:all .3s ease;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);position:relative;overflow:hidden}
+    .stat::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.05),transparent);transform:translateX(-100%);transition:0.5s}
+    .stat:hover::before{transform:translateX(100%)}
+    .stat:hover{transform:translateY(-5px);box-shadow:0 15px 35px rgba(0,0,0,.4);border-color:rgba(255,255,255,0.1)}
+    .stat-icon{font-size:28px;margin-bottom:12px;display:inline-block;padding:12px;border-radius:50%;background:rgba(255,255,255,0.05)}
+    .stat-num{font-size:36px;font-weight:800;line-height:1;margin-bottom:4px}
+    .stat-lbl{font-size:13px;opacity:.7;font-weight:600;letter-spacing:0.5px}
+    
+    .s1 .stat-icon{color:var(--pr);box-shadow:0 0 15px rgba(212,175,55,.2)}
+    .s2 .stat-icon{color:var(--tl);box-shadow:0 0 15px rgba(14,165,233,.2)}
+    .s3 .stat-icon{color:var(--gr);box-shadow:0 0 15px rgba(16,185,129,.2)}
+    .s4 .stat-icon{color:var(--or);box-shadow:0 0 15px rgba(245,158,11,.2)}
 
     /* Accordion */
-    .acc-hdr{display:flex;justify-content:space-between;align-items:center;padding:17px 22px;cursor:pointer;user-select:none;transition:background .2s;border-bottom:2px solid transparent}
-    .acc-hdr:hover{background:#f8f9ff}
-    .acc-hdr.open{border-bottom-color:#eef0ff}
-    .acc-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#333}
-    .acc-right{display:flex;align-items:center;gap:10px}
-    .badge-cnt{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700}
-    .acc-arrow{color:#bbb;font-size:16px;transition:transform .25s;display:inline-block}
-    .acc-hdr.open .acc-arrow{transform:rotate(180deg)}
-    .acc-body{display:none;padding:0 18px 18px}
-    .acc-body.open{display:block}
+    .acc-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 26px;cursor:pointer;user-select:none;transition:background .3s;border-bottom:1px solid transparent}
+    .acc-hdr:hover{background:rgba(255,255,255,0.02)}
+    .acc-hdr.open{border-bottom-color:var(--glass-border);background:rgba(0,0,0,0.1)}
+    .acc-title{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;color:var(--text-main)}
+    .acc-right{display:flex;align-items:center;gap:12px}
+    .badge-cnt{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#000;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:800;box-shadow:0 4px 10px rgba(212,175,55,.3)}
+    .acc-arrow{color:var(--text-muted);font-size:14px;transition:transform .3s ease;display:inline-block}
+    .acc-hdr.open .acc-arrow{transform:rotate(180deg);color:var(--pr)}
+    .acc-body{display:none;padding:20px 24px 24px}
+    .acc-body.open{display:block;animation:fadeIn 0.3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 
     /* Table */
-    .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid #eee;margin-top:10px}
-    table{width:100%;border-collapse:collapse;min-width:480px}
-    thead tr{background:linear-gradient(135deg,var(--pr),var(--pr2))}
-    th{color:#fff;padding:11px 13px;text-align:right;font-size:13px;font-weight:600}
-    th:first-child{border-radius:0 12px 0 0}
-    th:last-child{border-radius:12px 0 0 0}
-    td{padding:10px 13px;border-bottom:1px solid #f2f2f2;font-size:13px;color:#444;vertical-align:middle}
+    .tbl-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--glass-border);margin-top:10px;background:rgba(0,0,0,0.1)}
+    table{width:100%;border-collapse:collapse;min-width:600px}
+    thead tr{background:rgba(255,255,255,0.03);border-bottom:1px solid var(--glass-border)}
+    th{color:var(--text-main);padding:14px 16px;text-align:right;font-size:14px;font-weight:700;letter-spacing:0.5px}
+    td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px;color:var(--text-muted);vertical-align:middle;transition:background 0.2s}
     tr:last-child td{border-bottom:none}
-    tbody tr:hover td{background:#f8f9ff}
-    .no-data{text-align:center;color:#bbb;padding:28px;font-size:14px}
+    tbody tr:hover td{background:rgba(255,255,255,0.02);color:var(--text-main)}
+    .no-data{text-align:center;color:var(--text-muted);padding:40px;font-size:15px;font-style:italic}
 
     /* Badges */
-    .badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;display:inline-block}
-    .b-pending{background:#ffe0e6;color:#d63031}
-    .b-waiting{background:#e0f4ff;color:#0984e3}
-    .b-finished{background:#e0fff4;color:#00b894}
-    .b-trash{background:#f5f5f5;color:#999}
+    .badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;display:inline-block;letter-spacing:0.5px;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+    .b-pending{background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3)}
+    .b-waiting{background:rgba(14,165,233,0.15);color:#7dd3fc;border:1px solid rgba(14,165,233,0.3)}
+    .b-finished{background:rgba(16,185,129,0.15);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
+    .b-trash{background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid rgba(255,255,255,0.1)}
 
     /* Delete button */
-    .btn-del{background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:#fff}
-    .btn-del:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(238,90,36,.4)}
-
-    /* Trash accordion */
-    .s-trash{background:linear-gradient(135deg,#636e72,#2d3436)}
+    .btn-del{background:transparent;color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:8px 12px}
+    .btn-del:hover{background:rgba(239,68,68,0.1);transform:translateY(-2px);box-shadow:0 5px 15px rgba(239,68,68,.2);border-color:#ef4444}
 
     /* Developer credit */
-    .dev-credit{text-align:center;margin-top:10px;margin-bottom:4px;padding:14px 20px;background:rgba(255,255,255,.07);border-radius:14px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1)}
-    .dev-credit p{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px}
-    .dev-credit a{color:rgba(255,255,255,.8);font-size:13px;font-weight:700;text-decoration:none;letter-spacing:.3px}
-    .dev-credit a:hover{color:#fff}
+    .dev-credit{text-align:center;margin-top:20px;margin-bottom:4px;padding:16px 24px;background:var(--glass-bg);border-radius:18px;backdrop-filter:blur(8px);border:1px solid var(--glass-border);transition:all 0.3s ease}
+    .dev-credit:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+    .dev-credit p{color:var(--text-muted);font-size:13px;margin-bottom:6px}
+    .dev-credit a{color:var(--text-main);font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .dev-credit a:hover{color:var(--pr)}
 
-    /* Amount field in modal */
-    .modal input[type=number]{width:100%;padding:12px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;margin-top:10px;font-family:inherit;background:#fafafa}
-    .modal input[type=number]:focus{outline:none;border-color:var(--gr)}
+    /* Form Fields in Modal/Admin */
+    .modal input[type=number]{width:100%;padding:14px;border:1px solid var(--glass-border);border-radius:14px;font-size:15px;margin-top:12px;font-family:inherit;background:rgba(0,0,0,0.2);color:var(--text-main)}
+    .modal input[type=number]:focus{outline:none;border-color:var(--gr);box-shadow:0 0 0 4px rgba(16,185,129,.15);background:rgba(0,0,0,0.4)}
 
     /* Barber total */
-    .barber-total{font-size:12px;opacity:.8;margin-top:3px}
+    .barber-total{font-size:13px;font-weight:600;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.1);color:var(--pr)}
 
     /* Payment section */
-    .pay-box{background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:2px solid #a5d6a7;border-radius:14px;padding:16px;margin-bottom:16px}
-    .pay-box .pay-title{font-size:13px;color:#555;margin-bottom:8px;font-weight:700}
-    .pay-number{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:10px;padding:11px 14px;border:1px solid #c8e6c9}
-    .pay-number span{font-size:18px;font-weight:800;color:#2e7d32;letter-spacing:1px;direction:ltr}
-    .copy-btn{background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
-    .copy-btn:active{transform:scale(.96)}
-    .upload-area{border:2px dashed #90caf9;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#f8fbff;margin-top:8px}
-    .upload-area:hover{border-color:#42a5f5;background:#e3f2fd}
+    .pay-box{background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:inset 0 2px 10px rgba(0,0,0,0.2)}
+    .pay-box .pay-title{font-size:15px;color:var(--text-main);margin-bottom:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .pay-number{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.1)}
+    .pay-number span{font-size:22px;font-weight:800;color:var(--pr);letter-spacing:2px;direction:ltr}
+    .copy-btn{background:rgba(255,255,255,0.1);color:var(--text-main);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s}
+    .copy-btn:hover{background:rgba(255,255,255,0.15);color:var(--pr);border-color:var(--pr)}
+    .copy-btn:active{transform:scale(.95)}
+    .upload-area{border:2px dashed rgba(255,255,255,0.2);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .3s ease;background:rgba(0,0,0,0.1);margin-top:12px}
+    .upload-area:hover{border-color:var(--pr);background:rgba(212,175,55,0.05)}
     .upload-area input{display:none}
-    .upload-area .up-icon{font-size:32px;margin-bottom:6px}
-    .upload-area .up-text{font-size:13px;color:#888}
-    .upload-preview{margin-top:10px;border-radius:10px;overflow:hidden;max-height:180px;display:none}
-    .upload-preview img{width:100%;object-fit:cover}
-    .receipt-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;border:2px solid #e0e0e0}
-    .receipt-thumb:hover{border-color:var(--pr)}
+    .upload-area .up-icon{font-size:40px;margin-bottom:12px;color:var(--text-muted)}
+    .upload-area:hover .up-icon{color:var(--pr)}
+    .upload-area .up-text{font-size:14px;color:var(--text-muted);font-weight:600}
+    .upload-preview{margin-top:16px;border-radius:14px;overflow:hidden;max-height:220px;display:none;border:1px solid var(--glass-border);box-shadow:0 8px 20px rgba(0,0,0,0.3)}
+    .upload-preview img{width:100%;object-fit:cover;display:block}
+    .receipt-thumb{width:45px;height:45px;border-radius:10px;object-fit:cover;cursor:pointer;border:2px solid rgba(255,255,255,0.1);transition:all 0.2s;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
+    .receipt-thumb:hover{border-color:var(--pr);transform:scale(1.1)}
 
     /* Barbers */
-    .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px}
-    .barber-card{background:linear-gradient(135deg,var(--pr),var(--pr2));border-radius:15px;padding:18px 12px;text-align:center;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 5px 18px rgba(102,126,234,.3)}
-    .barber-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(102,126,234,.5)}
-    .bc-name{font-size:14px;font-weight:700;margin-bottom:7px}
-    .bc-num{font-size:30px;font-weight:800;line-height:1}
-    .bc-lbl{font-size:11px;opacity:.8;margin-top:4px}
+    .barbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px 0}
+    .barber-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:20px;padding:22px 14px;text-align:center;color:var(--text-main);cursor:pointer;transition:all .3s ease;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+    .barber-card:hover{transform:translateY(-5px);box-shadow:0 15px 30px rgba(0,0,0,0.4);border-color:var(--pr);background:rgba(0,0,0,0.2)}
+    .bc-name{font-size:16px;font-weight:800;margin-bottom:12px;color:var(--text-main)}
+    .bc-num{font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;color:var(--pr)}
+    .bc-lbl{font-size:13px;opacity:.7;font-weight:600}
 
     /* Search */
-    .search-row{display:flex;gap:8px;flex-wrap:wrap}
-    .search-row input{flex:1;min-width:200px;padding:11px 15px;border:2px solid #e8e8e8;border-radius:11px;font-size:14px;font-family:inherit;background:#fafafa}
-    .search-row input:focus{outline:none;border-color:var(--pr);background:#fff}
+    .search-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .search-row input{flex:1;min-width:200px;padding:14px 20px;border:1px solid var(--glass-border);border-radius:14px;font-size:15px;font-family:inherit;background:rgba(0,0,0,0.2);color:var(--text-main);transition:all 0.3s}
+    .search-row input:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 4px rgba(212,175,55,.15);background:rgba(0,0,0,0.4)}
 
     /* Ticket success */
-    .tick-success{text-align:center;padding:8px 0}
-    .tick-icon{font-size:65px;margin-bottom:8px}
-    .tick-title{font-size:21px;font-weight:800;color:var(--gr);margin-bottom:16px}
-    .tick-info{background:linear-gradient(135deg,#f0f4ff,#e8ecff);border:2px solid #c5ceff;border-radius:14px;padding:18px;margin-bottom:16px}
-    .tick-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #dde3ff}
+    .tick-success{text-align:center;padding:16px 0}
+    .tick-icon{font-size:80px;margin-bottom:16px}
+    .tick-title{font-size:26px;font-weight:800;color:var(--gr);margin-bottom:24px;text-shadow:0 0 20px rgba(16,185,129,0.3)}
+    .tick-info{background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:18px;padding:24px;margin-bottom:24px;box-shadow:inset 0 2px 10px rgba(0,0,0,0.2)}
+    .tick-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
     .tick-row:last-child{border-bottom:none}
-    .tick-row span:first-child{color:#888;font-size:14px}
-    .tick-row span:last-child{font-weight:700;color:#333}
-    .tick-note{background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:11px 15px;font-size:13px;color:#795548;margin-bottom:16px}
+    .tick-row span:first-child{color:var(--text-muted);font-size:15px;font-weight:600}
+    .tick-row span:last-child{font-weight:800;color:var(--text-main);font-size:16px}
+    .tick-note{background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;font-size:14px;color:#fde68a;margin-bottom:24px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
 
     /* Admin top */
-    .adm-top{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;gap:10px}
-    .adm-top h2{color:#333;font-size:1.2em;margin:0}
+    .adm-top{display:flex;justify-content:space-between;align-items:center;padding:24px 26px;border-bottom:1px solid var(--glass-border);flex-wrap:wrap;gap:12px;background:rgba(0,0,0,0.1)}
+    .adm-top h2{color:var(--text-main);font-size:1.4em;margin:0;display:flex;align-items:center;gap:10px}
+    .adm-top h2 i{color:var(--pr)}
 
     /* Login */
-    .login-wrap{max-width:400px;margin:50px auto 0}
-    .login-icon{text-align:center;font-size:55px;margin-bottom:8px}
+    .login-wrap{max-width:440px;margin:80px auto 0}
+    .login-icon{text-align:center;font-size:65px;margin-bottom:16px;filter:drop-shadow(0 0 15px rgba(212,175,55,0.4))}
 
     /* Modal */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
-    .modal{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(0,0,0,.4);animation:popIn .22s ease}
-    .modal-wide{max-width:580px}
-    @keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
-    .modal-title{font-size:1.25em;font-weight:800;color:#333;margin-bottom:18px;padding-bottom:13px;border-bottom:2px solid #f0f0f0}
-    .info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .modal{background:#1e1e24;border:1px solid rgba(255,255,255,0.1);border-radius:28px;padding:34px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);color:var(--text-main);position:relative}
+    .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)}
+    .modal-wide{max-width:640px}
+    @keyframes popIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+    .modal-title{font-size:1.4em;font-weight:800;color:var(--text-main);margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
     .info-row:last-child{border-bottom:none}
-    .info-row .lbl{color:#888;font-size:14px}
-    .info-row .val{font-weight:700;color:#333;font-size:15px}
-    .modal-btns{display:flex;gap:10px;margin-top:20px}
+    .info-row .lbl{color:var(--text-muted);font-size:14px;font-weight:600}
+    .info-row .val{font-weight:800;color:var(--text-main);font-size:16px}
+    .modal-btns{display:flex;gap:14px;margin-top:28px}
     .modal-btns .btn{flex:1;justify-content:center}
-    .modal select{width:100%;padding:12px;border:2px solid #e8e8e8;border-radius:11px;font-size:15px;margin-top:14px;font-family:inherit;background:#fafafa}
-    .modal select:focus{outline:none;border-color:var(--pr)}
+    .modal select{width:100%;padding:14px;border:1px solid var(--glass-border);border-radius:14px;font-size:15px;margin-top:14px;font-family:inherit;background:rgba(0,0,0,0.2);color:var(--text-main)}
+    .modal select:focus{outline:none;border-color:var(--pr);box-shadow:0 0 0 4px rgba(212,175,55,.15);background:rgba(0,0,0,0.4)}
 
     /* Ticket number styles */
-    .tnum{color:var(--pr);font-size:20px;font-weight:800}
-    .tnum-gr{color:var(--gr);font-size:16px;font-weight:800}
+    .tnum{color:var(--pr);font-size:22px;font-weight:800;text-shadow:0 0 10px rgba(212,175,55,0.2)}
+    .tnum-gr{color:var(--gr);font-size:18px;font-weight:800;text-shadow:0 0 10px rgba(16,185,129,0.2)}
 
     /* Loading overlay */
-    .loading-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--pr),var(--pr2));z-index:99999;animation:loadBar 1.2s ease-in-out infinite}
-    @keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .loading-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--pr),var(--pr2),#fff,var(--pr));background-size:200% 100%;z-index:99999;animation:loadBar 1.5s linear infinite}
+    @keyframes loadBar{0%{background-position:100% 0}100%{background-position:-100% 0}}
 
     /* Toast */
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:99999;animation:toastIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.3)}
-    @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+    .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:rgba(30,41,59,0.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:16px 28px;border-radius:100px;font-size:15px;font-weight:600;z-index:99999;animation:toastIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);box-shadow:0 15px 40px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px}
+    @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
     /* Responsive */
     @media(max-width:640px){
       .stats{grid-template-columns:repeat(2,1fr)}
       .barbers-grid{grid-template-columns:repeat(2,1fr)}
-      .site-header h1{font-size:1.7em}
-      .modal{padding:20px}
+      .site-header h1{font-size:1.9em}
+      .modal{padding:26px 20px;border-radius:24px}
+      .card-body{padding:20px}
+      .nav{padding:6px;gap:6px}
+      .nav button{padding:12px 0;font-size:14px}
     }
-    @media(max-width:400px){th,td{padding:8px 7px;font-size:12px}}
+    @media(max-width:400px){
+      th,td{padding:10px 8px;font-size:13px}
+      .stats{grid-template-columns:1fr}
+      .barbers-grid{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="site-header">
-    <h1>🪒 صالون مسيو كمال</h1>
+    <h1><i class="fa-solid fa-scissors"></i> صالون مسيو كمال</h1>
     <p>نظام حجز التذاكر الإلكتروني</p>
   </div>
 
   <div class="nav">
-    <button id="btnCustomer" class="active">✂️ حجز تذكرة</button>
-    <button id="btnAdmin">📊 لوحة المسؤول</button>
+    <button id="btnCustomer" class="active"><i class="fa-solid fa-ticket"></i> حجز تذكرة</button>
+    <button id="btnAdmin"><i class="fa-solid fa-chart-line"></i> لوحة المسؤول</button>
   </div>
 
   <!-- ===== صفحة الزبون ===== -->
   <div id="pgCustomer">
     <div id="formCard" class="card">
       <div class="card-body">
-        <h2 style="color:#333;margin-bottom:18px;font-size:1.35em">🎫 احجز تذكرتك الآن</h2>
+        <h2 style="color:#333;margin-bottom:18px;font-size:1.35em"><i class="fa-solid fa-ticket" style="color:var(--pr)"></i> احجز تذكرتك الآن</h2>
         <form id="frmBook">
           <div class="fg"><label>الاسم الكامل</label><input type="text" id="inName" placeholder="أدخل اسمك الكامل" required/></div>
           <div class="fg"><label>رقم التليفون</label><input type="tel" id="inPhone" placeholder="01xxxxxxxxx" required/></div>
 
           <!-- خانة الدفع -->
           <div class="pay-box">
-            <div class="pay-title">💳 ادفع أولاً — اختر طريقة الدفع</div>
+            <div class="pay-title"><i class="fa-solid fa-credit-card"></i> ادفع أولاً — اختر طريقة الدفع</div>
             <div class="pay-number" style="margin-bottom:10px">
               <span id="payNum">01060602836</span>
-              <button type="button" class="copy-btn" onclick="copyPayNum()">📋 نسخ</button>
+              <button type="button" class="copy-btn" onclick="copyPayNum()"><i class="fa-solid fa-clone"></i> نسخ</button>
             </div>
-            <div style="font-size:12px;color:#2e7d32;font-weight:700;margin-bottom:6px;text-align:center">👇 اضغط على طريقة الدفع وهتتحول للتطبيق على طول</div>
+            <div style="font-size:12px;color:#2e7d32;font-weight:700;margin-bottom:6px;text-align:center"><i class="fa-solid fa-hand-point-down"></i> اضغط على طريقة الدفع وهتتحول للتطبيق على طول</div>
             <div style="display:flex;gap:8px;margin-bottom:8px">
               <a href="http://vf.eg/vfcash?id=mt&qrId=VtD1yc" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;text-decoration:none;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.15)">
                 <img src="https://i.ibb.co/0y6yKR65/image.png" alt="فودافون كاش" style="width:100%;height:52px;object-fit:contain;display:block;border-radius:10px;background:#fff"/>
@@ -245,14 +286,14 @@
                 <img src="https://i.ibb.co/gFtK0qQB/insta.png" alt="InstaPay" style="width:100%;height:52px;object-fit:contain;display:block;border-radius:10px;background:#fff"/>
               </a>
             </div>
-            <div style="font-size:12px;color:#888">بعد الدفع ارفع صورة الإيصال أدناه 👇</div>
+            <div style="font-size:12px;color:#888">بعد الدفع ارفع صورة الإيصال أدناه <i class="fa-solid fa-arrow-down"></i></div>
           </div>
 
           <div class="fg">
-            <label>📎 صورة إيصال الدفع <span style="color:#e53e3e">*</span></label>
+            <label><i class="fa-solid fa-paperclip"></i> صورة إيصال الدفع <span style="color:#e53e3e">*</span></label>
             <div class="upload-area" onclick="document.getElementById('inReceipt').click()">
               <input type="file" id="inReceipt" accept="image/*" onchange="previewReceipt(this)"/>
-              <div class="up-icon">📷</div>
+              <div class="up-icon"><i class="fa-solid fa-camera" style="color:#90caf9"></i></div>
               <div class="up-text">اضغط لرفع صورة الإيصال</div>
             </div>
             <div class="upload-preview" id="receiptPreview">
@@ -260,27 +301,27 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-pr btn-full">احجز الآن 🎫</button>
+          <button type="submit" class="btn btn-pr btn-full">احجز الآن <i class="fa-solid fa-check"></i></button>
         </form>
       </div>
     </div>
     <div id="bookDone" class="card hidden">
       <div class="card-body">
         <div class="tick-success">
-          <div class="tick-icon">✅</div>
+          <div class="tick-icon"><i class="fa-solid fa-circle-check" style="color:var(--gr)"></i></div>
           <div class="tick-title">تم تسجيل طلبك!</div>
           <div class="tick-info">
             <div class="tick-row"><span>الاسم</span><span id="dName"></span></div>
             <div class="tick-row"><span>التليفون</span><span id="dPhone"></span></div>
           </div>
-          <div class="tick-note">⏳ انتظر — المسؤول سيرسل لك رقم تذكرتك على الواتساب قريباً</div>
+          <div class="tick-note"><i class="fa-solid fa-hourglass-half" style="margin-left:4px"></i> انتظر — المسؤول سيرسل لك رقم تذكرتك على الواتساب قريباً</div>
           <button id="btnNewBook" class="btn btn-gy btn-full">حجز جديد</button>
         </div>
       </div>
     </div>
     <div class="dev-credit" id="devCredit" style="cursor:pointer" onclick="openModal('mDev')">
-      <p>⚙️ تم تطوير هذا النظام بواسطة</p>
-      <a>👨‍💻 المهندس مهند إيهاب التهامي — 01021102607</a>
+      <p><i class="fa-solid fa-code"></i> تم تطوير هذا النظام بواسطة</p>
+      <a><i class="fa-solid fa-user-tie"></i> المهندس مهند إيهاب التهامي — 01021102607</a>
     </div>
   </div>
 
@@ -289,7 +330,7 @@
 
     <!-- Login -->
     <div id="pgLogin" class="login-wrap">
-      <div class="login-icon">🔐</div>
+      <div class="login-icon"><i class="fa-solid fa-lock" style="color:var(--pr)"></i></div>
       <div class="card">
         <div class="card-body">
           <h2 style="text-align:center;color:#333;margin-bottom:20px">تسجيل دخول المسؤول</h2>
@@ -307,24 +348,24 @@
       <!-- Stats -->
       <div class="card">
         <div class="adm-top">
-          <h2>📊 لوحة التحكم</h2>
+          <h2><i class="fa-solid fa-chart-pie"></i> لوحة التحكم</h2>
           <div style="display:flex;gap:8px;align-items:center">
-            <button id="btnRefresh" class="btn btn-tl btn-sm">🔄 تحديث</button>
-            <button id="btnLogout" class="btn btn-gy btn-sm">خروج 🚪</button>
+            <button id="btnRefresh" class="btn btn-tl btn-sm"><i class="fa-solid fa-arrows-rotate"></i> تحديث</button>
+            <button id="btnLogout" class="btn btn-gy btn-sm">خروج <i class="fa-solid fa-arrow-right-from-bracket"></i></button>
           </div>
         </div>
         <div class="stats">
-          <div class="stat s1" data-action="stat-click" data-target="bodyPend"><div class="stat-icon">⏳</div><div class="stat-num" id="stP">0</div><div class="stat-lbl">طلبات منتظرة</div></div>
-          <div class="stat s2" data-action="stat-click" data-target="bodyWait"><div class="stat-icon">💈</div><div class="stat-num" id="stW">0</div><div class="stat-lbl">في الانتظار</div></div>
-          <div class="stat s3" data-action="stat-click" data-target="bodyDone"><div class="stat-icon">✅</div><div class="stat-num" id="stC">0</div><div class="stat-lbl">تم الانتهاء</div></div>
-          <div class="stat s4" data-action="stat-click" data-target="bodyPend"><div class="stat-icon">🎫</div><div class="stat-num" id="stT">0</div><div class="stat-lbl">إجمالي اليوم</div></div>
+          <div class="stat s1" data-action="stat-click" data-target="bodyPend"><div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-num" id="stP">0</div><div class="stat-lbl">طلبات منتظرة</div></div>
+          <div class="stat s2" data-action="stat-click" data-target="bodyWait"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-num" id="stW">0</div><div class="stat-lbl">في الانتظار</div></div>
+          <div class="stat s3" data-action="stat-click" data-target="bodyDone"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-num" id="stC">0</div><div class="stat-lbl">تم الانتهاء</div></div>
+          <div class="stat s4" data-action="stat-click" data-target="bodyPend"><div class="stat-icon"><i class="fa-solid fa-ticket"></i></div><div class="stat-num" id="stT">0</div><div class="stat-lbl">إجمالي اليوم</div></div>
         </div>
       </div>
 
       <!-- Search -->
       <div class="card">
         <div class="card-body">
-          <h2 style="color:#333;margin-bottom:14px;font-size:1.05em">🔍 البحث</h2>
+          <h2 style="color:#333;margin-bottom:14px;font-size:1.05em"><i class="fa-solid fa-magnifying-glass"></i> البحث</h2>
           <div class="search-row">
             <input type="text" id="inSearch" placeholder="ابحث بالاسم أو رقم التذكرة أو التليفون..."/>
             <button id="btnSearch" class="btn btn-pr">بحث</button>
@@ -337,7 +378,7 @@
       <!-- Accordion: Pending -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyPend">
-          <div class="acc-title">⏳ الطلبات المنتظرة</div>
+          <div class="acc-title"><i class="fa-solid fa-hourglass-half" style="color:#ffc107"></i> الطلبات المنتظرة</div>
           <div class="acc-right"><span class="badge-cnt" id="cntP">0</span><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyPend">
@@ -351,7 +392,7 @@
       <!-- Accordion: Waiting -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyWait">
-          <div class="acc-title">💈 في الانتظار</div>
+          <div class="acc-title"><i class="fa-solid fa-users" style="color:var(--pr)"></i> في الانتظار</div>
           <div class="acc-right"><span class="badge-cnt" id="cntW">0</span><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyWait">
@@ -365,7 +406,7 @@
       <!-- Accordion: Finished -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyDone">
-          <div class="acc-title">✅ تم الانتهاء</div>
+          <div class="acc-title"><i class="fa-solid fa-circle-check" style="color:var(--gr)"></i> تم الانتهاء</div>
           <div class="acc-right"><span class="badge-cnt" id="cntC">0</span><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyDone">
@@ -379,7 +420,7 @@
       <!-- Accordion: Barbers -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyBarbers">
-          <div class="acc-title">💈 إحصائيات الموظفين</div>
+          <div class="acc-title"><i class="fa-solid fa-chart-simple" style="color:var(--tl)"></i> إحصائيات الموظفين</div>
           <div class="acc-right"><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyBarbers">
@@ -397,7 +438,7 @@
       <!-- Accordion: Add Manual -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyAdd">
-          <div class="acc-title">➕ إضافة عميل يدوي</div>
+          <div class="acc-title"><i class="fa-solid fa-user-plus" style="color:var(--pr2)"></i> إضافة عميل يدوي</div>
           <div class="acc-right"><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyAdd">
@@ -413,7 +454,7 @@
       <!-- Accordion: Trash -->
       <div class="card">
         <div class="acc-hdr" data-target="bodyTrash">
-          <div class="acc-title">🗑️ سلة المهملات <span style="font-size:11px;color:#aaa;font-weight:400">(تُمسح تلقائياً بعد 7 أيام)</span></div>
+          <div class="acc-title"><i class="fa-solid fa-trash" style="color:var(--gy)"></i> سلة المهملات <span style="font-size:11px;color:#aaa;font-weight:400">(تُمسح تلقائياً بعد 7 أيام)</span></div>
           <div class="acc-right"><span class="badge-cnt" id="cntTrash" style="background:linear-gradient(135deg,#636e72,#2d3436)">0</span><span class="acc-arrow">▼</span></div>
         </div>
         <div class="acc-body" id="bodyTrash">
@@ -432,10 +473,10 @@
 <!-- ===== MODALS ===== -->
 <div id="mSend" class="overlay hidden">
   <div class="modal">
-    <div class="modal-title">📨 إرسال رقم التذكرة</div>
+    <div class="modal-title"><i class="fa-solid fa-paper-plane" style="color:var(--pr)"></i> إرسال رقم التذكرة</div>
     <div id="mSendInfo"></div>
     <div class="modal-btns">
-      <button id="mSendConfirm" class="btn btn-gr">إرسال على الواتساب ✅</button>
+      <button id="mSendConfirm" class="btn btn-gr"><i class="fa-brands fa-whatsapp" style="font-size:16px"></i> إرسال على الواتساب</button>
       <button class="btn btn-gy close-modal" data-modal="mSend">إلغاء</button>
     </div>
   </div>
@@ -443,16 +484,16 @@
 
 <div id="mDone" class="overlay hidden">
   <div class="modal">
-    <div class="modal-title">✂️ تم الحلاقة</div>
+    <div class="modal-title"><i class="fa-solid fa-scissors" style="color:var(--or)"></i> تم الحلاقة</div>
     <div id="mDoneInfo"></div>
     <select id="selBarber">
       <option value="">— اختر الحلاق —</option>
       <option>أحمد كمال</option><option>محمد</option><option>محمود</option>
       <option>أحمد السيد</option><option>إبراهيم</option><option>باسم</option>
     </select>
-    <input type="number" id="inAmount" placeholder="💰 المبلغ المدفوع (جنيه) — إجباري" min="0" step="0.5"/>
+    <input type="number" id="inAmount" placeholder="المبلغ المدفوع (جنيه) — إجباري" min="0" step="0.5"/>
     <div class="modal-btns">
-      <button id="mDoneConfirm" class="btn btn-gr">تأكيد ✅</button>
+      <button id="mDoneConfirm" class="btn btn-gr"><i class="fa-solid fa-check"></i> تأكيد</button>
       <button class="btn btn-gy close-modal" data-modal="mDone">إلغاء</button>
     </div>
   </div>
@@ -468,7 +509,7 @@
 
 <div id="mDetails" class="overlay hidden">
   <div class="modal">
-    <div class="modal-title">📋 تفاصيل الزبون</div>
+    <div class="modal-title"><i class="fa-solid fa-clipboard-user" style="color:var(--tl)"></i> تفاصيل الزبون</div>
     <div id="mDetailsBody"></div>
     <div class="modal-btns"><button class="btn btn-gy btn-full close-modal" data-modal="mDetails">إغلاق</button></div>
   </div>
@@ -476,7 +517,7 @@
 
 <div id="mReceipt" class="overlay hidden">
   <div class="modal" style="text-align:center">
-    <div class="modal-title">🧾 إيصال الدفع</div>
+    <div class="modal-title"><i class="fa-solid fa-receipt" style="color:var(--pr2)"></i> إيصال الدفع</div>
     <div id="mReceiptInfo" style="margin-bottom:14px"></div>
     <img id="mReceiptImg" src="" alt="إيصال" style="width:100%;border-radius:12px;max-height:400px;object-fit:contain;border:1px solid #eee"/>
     <div class="modal-btns" style="margin-top:16px">
@@ -487,12 +528,12 @@
 
 <div id="mDev" class="overlay hidden">
   <div class="modal" style="text-align:center">
-    <div style="font-size:60px;margin-bottom:10px">👨‍💻</div>
+    <div style="font-size:60px;margin-bottom:10px;color:var(--pr)"><i class="fa-solid fa-laptop-code"></i></div>
     <div class="modal-title" style="text-align:center;border:none;padding-bottom:6px">المهندس مهند إيهاب التهامي</div>
     <p style="color:#888;font-size:13px;margin-bottom:20px">مطور مواقع وتطبيقات</p>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">
       <a href="tel:01021102607" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:#e8f5e9;border-radius:12px;text-decoration:none;color:#2e7d32;font-weight:700">
-        <span style="font-size:22px">📞</span> 01021102607
+        <span style="font-size:22px"><i class="fa-solid fa-phone"></i></span> 01021102607
       </a>
       <a href="https://wa.me/201021102607" target="_blank" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:#e8f5e9;border-radius:12px;text-decoration:none;color:#25d366;font-weight:700">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -586,7 +627,7 @@ function waOpen(phone, msg) {
 
 function copyPayNum() {
   navigator.clipboard.writeText('01060602836').then(function(){
-    toast('✅ تم نسخ الرقم');
+    toast('<i class="fa-solid fa-check"></i> تم نسخ الرقم');
   });
 }
 
@@ -613,7 +654,7 @@ function previewReceipt(input) {
   reader.onload = function(e) {
     document.getElementById('receiptImg').src = e.target.result;
     document.getElementById('receiptPreview').style.display = 'block';
-    document.querySelector('.upload-area .up-text').textContent = '✅ ' + file.name;
+    document.querySelector('.upload-area .up-text').innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--gr)"></i> ' + file.name;
   };
   reader.readAsDataURL(file);
 }
@@ -636,7 +677,7 @@ function startRealtimeListener() {
     snap.forEach(function(doc){ arr.push(Object.assign({ id: doc.id }, doc.data())); });
     window._tickets = arr;
     renderDashboard(arr);
-  }, function(){ toast('❌ خطأ في الاتصال المباشر'); });
+  }, function(){ toast('<i class="fa-solid fa-triangle-exclamation" style="color:#ff6b6b"></i> خطأ في الاتصال المباشر'); });
 }
 function stopRealtimeListener() {
   if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
@@ -720,16 +761,16 @@ document.getElementById('frmBook').addEventListener('submit', function(e) {
       time: nowStr(), ts: Date.now()
     };
     addTicket(ticket, function(err) {
-      btn.disabled = false;
-      btn.textContent = 'احجز الآن 🎫';
-      if (err) { alert('حدث خطأ، تأكد من الاتصال بالإنترنت'); return; }
-      waOpen(ADMIN_WA,
-        '🔔 طلب حجز جديد!\n━━━━━━━━━━━━━━\n' +
-        '👤 الاسم: '    + name  + '\n' +
-        '📞 التليفون: ' + phone + '\n' +
-        '🧾 الإيصال: ' + receiptUrl + '\n━━━━━━━━━━━━━━\n' +
-        '⏳ في انتظار تأكيد التذكرة'
-      );
+    btn.disabled = false;
+    btn.textContent = '<i class="fa-solid fa-check"></i> احجز الآن';
+    if (err) { alert('حدث خطأ، تأكد من الاتصال بالإنترنت'); return; }
+        waOpen(ADMIN_WA,
+          '🔔 طلب حجز جديد!\n━━━━━━━━━━━━━━\n' +
+          '👤 الاسم: '    + name  + '\n' +
+          '📞 التليفون: ' + phone + '\n' +
+          '🧾 الإيصال: ' + receiptUrl + '\n━━━━━━━━━━━━━━\n' +
+          '⌛ في انتظار تأكيد التذكرة'
+        );
       document.getElementById('formCard').classList.add('hidden');
       document.getElementById('bookDone').classList.remove('hidden');
       document.getElementById('dName').textContent  = name;
@@ -737,7 +778,7 @@ document.getElementById('frmBook').addEventListener('submit', function(e) {
     });
   }).catch(function(err) {
     btn.disabled = false;
-    btn.textContent = 'احجز الآن 🎫';
+    btn.textContent = '<i class="fa-solid fa-check"></i> احجز الآن';
     alert('فشل رفع الإيصال، تأكد من الاتصال وحاول مرة أخرى');
   });
 });
@@ -769,7 +810,7 @@ document.getElementById('frmLogin').addEventListener('submit', function(e) {
 document.getElementById('btnRefresh').addEventListener('click', function() {
   stopRealtimeListener();
   startRealtimeListener();
-  toast('🔄 جاري التحديث...');
+  toast('<i class="fa-solid fa-arrows-rotate"></i> جاري التحديث...');
 });
 
 document.getElementById('btnLogout').addEventListener('click', function() {
@@ -810,13 +851,13 @@ function renderDashboard(tickets) {
           ? '<img src="' + t.receiptUrl + '" class="receipt-thumb" data-action="view-receipt" data-id="' + t.id + '" title="عرض الإيصال"/>'
           : '<span style="color:#ccc;font-size:12px">لا يوجد</span>';
         return '<tr>'
-          + '<td><span style="color:#aaa;font-size:12px">⏳ قيد التحديد</span></td>'
+          + '<td><span style="color:#aaa;font-size:12px"><i class="fa-solid fa-hourglass-half"></i> قيد التحديد</span></td>'
           + '<td>' + t.name  + '</td>'
           + '<td>' + t.phone + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
           + '<td>' + receiptBtn + '</td>'
-          + '<td><button class="btn btn-gr btn-sm" data-action="send-ticket" data-id="' + t.id + '">📨 إرسال التذكرة</button></td>'
-          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
+          + '<td><button class="btn btn-gr btn-sm" data-action="send-ticket" data-id="' + t.id + '"><i class="fa-solid fa-paper-plane"></i> إرسال التذكرة</button></td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '"><i class="fa-solid fa-trash"></i></button></td>'
           + '</tr>';
       }).join('')
     : '<tr><td colspan="7" class="no-data">لا توجد طلبات منتظرة</td></tr>';
@@ -829,8 +870,8 @@ function renderDashboard(tickets) {
           + '<td>' + t.name  + '</td>'
           + '<td>' + t.phone + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
-          + '<td><button class="btn btn-or btn-sm" data-action="done-haircut" data-id="' + t.id + '">✂️ تم الحلاقة</button></td>'
-          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
+          + '<td><button class="btn btn-or btn-sm" data-action="done-haircut" data-id="' + t.id + '"><i class="fa-solid fa-scissors"></i> تم الحلاقة</button></td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '"><i class="fa-solid fa-trash"></i></button></td>'
           + '</tr>';
       }).join('')
     : '<tr><td colspan="6" class="no-data">لا يوجد زبائن في الانتظار</td></tr>';
@@ -846,7 +887,7 @@ function renderDashboard(tickets) {
           + '<td>' + (t.barberName||'-') + '</td>'
           + '<td style="color:#28a745;font-weight:700">' + (t.amount ? t.amount + ' ج' : '-') + '</td>'
           + '<td style="font-size:12px;color:#888">' + (t.time||'-') + '</td>'
-          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '">🗑️</button></td>'
+          + '<td><button class="btn btn-del btn-sm" data-action="delete-ticket" data-id="' + t.id + '"><i class="fa-solid fa-trash"></i></button></td>'
           + '</tr>';
       }).join('')
     : '<tr><td colspan="7" class="no-data">لا يوجد زبائن منتهين</td></tr>';
@@ -862,7 +903,7 @@ function renderDashboard(tickets) {
       + '<div class="bc-name">' + b   + '</div>'
       + '<div class="bc-num">'  + cnt + '</div>'
       + '<div class="bc-lbl">زبون</div>'
-      + '<div class="barber-total">💰 ' + total + ' ج</div>'
+      + '<div class="barber-total"><i class="fa-solid fa-money-bill-wave"></i> ' + total + ' ج</div>'
       + '</div>';
   }).join('');
 
@@ -913,7 +954,7 @@ function loadTrash() {
 function renderTrash(items) {
   var cnt = items.length;
   document.getElementById('cntTrash').textContent = cnt;
-  var sl = { pending:'⏳ منتظر', waiting:'💈 انتظار', finished:'✅ تم' };
+  var sl = { pending:'<i class="fa-solid fa-hourglass-half"></i> منتظر', waiting:'<i class="fa-solid fa-users"></i> انتظار', finished:'<i class="fa-solid fa-circle-check"></i> تم' };
   document.getElementById('tblTrash').innerHTML = cnt
     ? items.sort(function(a,b){ return b.deletedAt - a.deletedAt; }).map(function(t){
         var daysLeft = Math.ceil((t.deletedAt + 7*24*60*60*1000 - Date.now()) / (24*60*60*1000));
@@ -989,13 +1030,13 @@ document.addEventListener('click', function(e) {
           '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
           '👤 الاسم: '       + ticket.name + '\n' +
           '🎟️ رقم تذكرتك: ' + nextNum     + '\n━━━━━━━━━━━━━━\n' +
-          '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
+          '💈 انتظر دورك في الصالون\nصالون مسيو كمال ✂️'
         );
         updateTicket(id, { status:'waiting', ticketNumber: nextNum, time: nowStr() }, function(err) {
-          if (err) { toast('❌ خطأ في التحديث'); return; }
+          if (err) { toast('<i class="fa-solid fa-xmark"></i> خطأ في التحديث'); return; }
           closeModal('mSend');
           loadDashboard();
-          toast('✅ تم إرسال التذكرة رقم ' + nextNum);
+          toast('<i class="fa-solid fa-check"></i> تم إرسال التذكرة رقم ' + nextNum);
         });
       };
       openModal('mSend');
@@ -1022,9 +1063,9 @@ document.addEventListener('click', function(e) {
       if (!barber) { alert('من فضلك اختر الحلاق'); return; }
       if (!amount || isNaN(amount) || parseFloat(amount) < 0) { alert('من فضلك أدخل المبلغ المدفوع'); return; }
       updateTicket(id, { status:'finished', barberName: barber, amount: parseFloat(amount), time: nowStr() }, function(err) {
-        if (err) { toast('❌ خطأ في التحديث'); return; }
+        if (err) { toast('<i class="fa-solid fa-xmark"></i> خطأ في التحديث'); return; }
         closeModal('mDone');
-        toast('✅ تم تسجيل انتهاء الحلاقة — المبلغ: ' + amount + ' ج');
+        toast('<i class="fa-solid fa-check"></i> تم تسجيل انتهاء الحلاقة — المبلغ: ' + amount + ' ج');
       });
     };
     openModal('mDone');
@@ -1039,7 +1080,7 @@ document.addEventListener('click', function(e) {
       .sort(function(a,b){ return b.ticketNumber - a.ticketNumber; });
     var total = list.reduce(function(s,t){ return s + (parseFloat(t.amount)||0); }, 0);
 
-    document.getElementById('mBarberTitle').textContent = '💈 ' + barber + ' — ' + list.length + ' زبون | إجمالي: ' + total + ' ج';
+    document.getElementById('mBarberTitle').innerHTML = '<i class="fa-solid fa-chart-pie"></i> ' + barber + ' — ' + list.length + ' زبون | إجمالي: ' + total + ' ج';
     document.getElementById('mBarberBody').innerHTML = list.length
       ? '<div class="tbl-wrap"><table>'
         + '<thead><tr><th>رقم التذكرة</th><th>الاسم</th><th>التليفون</th><th>المبلغ</th><th>الوقت</th></tr></thead><tbody>'
@@ -1082,10 +1123,10 @@ document.addEventListener('click', function(e) {
       .then(function(){ return db.collection(COLL).doc(id).delete(); })
       .then(function(){
         hideLoading();
-        toast('🗑️ تم نقل ' + ticket.name + ' لسلة المهملات');
+        toast('<i class="fa-solid fa-trash-can"></i> تم نقل ' + ticket.name + ' لسلة المهملات');
         loadTrash();
       })
-      .catch(function(){ hideLoading(); toast('❌ خطأ في الحذف'); });
+      .catch(function(){ hideLoading(); toast('<i class="fa-solid fa-xmark"></i> خطأ في الحذف'); });
     return;
   }
 
@@ -1094,7 +1135,7 @@ document.addEventListener('click', function(e) {
     var id = btn.dataset.id;
     var t  = (window._tickets||[]).find(function(x){ return x.id === id; });
     if (!t) return;
-    var sl = { pending:'⏳ منتظر', waiting:'💈 في الانتظار', finished:'✅ تم الانتهاء' };
+    var sl = { pending:'<i class="fa-solid fa-hourglass-half"></i> منتظر', waiting:'<i class="fa-solid fa-users"></i> في الانتظار', finished:'<i class="fa-solid fa-circle-check"></i> تم الانتهاء' };
     document.getElementById('mDetailsBody').innerHTML =
       '<div class="info-row"><span class="lbl">رقم التذكرة</span><span class="val tnum">' + (t.ticketNumber||'لم يُحدد') + '</span></div>'
       + '<div class="info-row"><span class="lbl">الاسم</span><span class="val">' + t.name + '</span></div>'
@@ -1152,7 +1193,7 @@ document.getElementById('frmAdd').addEventListener('submit', function(e) {
   if (!name || !phone) { alert('من فضلك أدخل الاسم والتليفون'); return; }
 
   fetchAll(function(err, tickets) {
-    if (err) { toast('❌ خطأ في الاتصال'); return; }
+    if (err) { toast('<i class="fa-solid fa-xmark"></i> خطأ في الاتصال'); return; }
     var ticketNum = nextTicketNumber(tickets);
     var newTicket = {
       id: uid(), name: name, phone: phone,
@@ -1161,14 +1202,14 @@ document.getElementById('frmAdd').addEventListener('submit', function(e) {
       time: nowStr(), ts: Date.now()
     };
     addTicket(newTicket, function(err) {
-      if (err) { toast('❌ خطأ في الحفظ'); return; }
+      if (err) { toast('<i class="fa-solid fa-xmark"></i> خطأ في الحفظ'); return; }
       waOpen(phone,
         '🎫 تم تأكيد حجزك!\n━━━━━━━━━━━━━━\n' +
         '👤 الاسم: '       + name      + '\n' +
         '🎟️ رقم تذكرتك: ' + ticketNum + '\n━━━━━━━━━━━━━━\n' +
-        '💈 انتظر دورك في الصالون\nصالون مسيو كمال 🪒'
+        '💈 انتظر دورك في الصالون\nصالون مسيو كمال ✂️'
       );
-      toast('✅ تم الإضافة! رقم التذكرة: ' + ticketNum);
+      toast('<i class="fa-solid fa-check"></i> تم الإضافة! رقم التذكرة: ' + ticketNum);
       document.getElementById('frmAdd').reset();
     });
   });
